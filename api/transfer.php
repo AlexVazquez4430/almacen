@@ -28,14 +28,20 @@ try {
     $stmt = $db->prepare("UPDATE products SET total_stock = total_stock - ? WHERE id = ?");
     $stmt->execute([$data['quantity'], $data['product_id']]);
     
-    // Add to plane stock
-    $stmt = $db->prepare("
-        INSERT INTO plane_stocks (plane_id, product_id, current_stock) 
-        VALUES (?, ?, ?) 
-        ON CONFLICT(plane_id, product_id) 
-        DO UPDATE SET current_stock = current_stock + ?
-    ");
-    $stmt->execute([$data['plane_id'], $data['product_id'], $data['quantity'], $data['quantity']]);
+    // Check if plane stock record exists
+    $stmt = $db->prepare("SELECT current_stock FROM plane_stocks WHERE plane_id = ? AND product_id = ?");
+    $stmt->execute([$data['plane_id'], $data['product_id']]);
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($existing) {
+        // Update existing stock
+        $stmt = $db->prepare("UPDATE plane_stocks SET current_stock = current_stock + ? WHERE plane_id = ? AND product_id = ?");
+        $stmt->execute([$data['quantity'], $data['plane_id'], $data['product_id']]);
+    } else {
+        // Insert new stock record
+        $stmt = $db->prepare("INSERT INTO plane_stocks (plane_id, product_id, current_stock) VALUES (?, ?, ?)");
+        $stmt->execute([$data['plane_id'], $data['product_id'], $data['quantity']]);
+    }
     
     $db->commit();
     echo json_encode(['success' => true]);
