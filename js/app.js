@@ -233,22 +233,22 @@ class WarehouseApp {
             const planes = await response.json();
             
             const select = document.getElementById('ticketPlane');
-            select.innerHTML = '<option value="">Select Plane</option>';
+            select.innerHTML = '<option value="">Seleccione un avión</option>';
 
             planes.forEach(plane => {
-                const option = document.createElement('option');
+                const option = document.createElement('opción');
                 option.value = plane.id;
                 option.textContent = plane.name;
                 select.appendChild(option);
             });
         } catch (error) {
-            console.error('Error loading planes for tickets:', error);
+            console.error('Error al cargar los tickets:', error);
         }
     }
 
     // Additional methods for stock management, transfers, etc.
     async updateStock(productId) {
-        const newStock = prompt('Enter new stock quantity:');
+        const newStock = prompt('Ingrese la nueva cantidad de stock:');
         if (newStock !== null && !isNaN(newStock)) {
             try {
                 await fetch('api/products.php', {
@@ -258,7 +258,7 @@ class WarehouseApp {
                 });
                 this.loadProducts();
             } catch (error) {
-                console.error('Error updating stock:', error);
+                console.error('Error al actualizar el stock:', error);
             }
         }
     }
@@ -278,7 +278,7 @@ class WarehouseApp {
     }
 
     async transferToPlane(planeId, productId) {
-        const quantity = prompt('Enter quantity to transfer:');
+        const quantity = prompt('Ingrese la cantidad a transferir:');
         if (quantity !== null && !isNaN(quantity)) {
             try {
                 await fetch('api/transfer.php', {
@@ -289,7 +289,7 @@ class WarehouseApp {
                 this.managePlaneStock(planeId);
                 this.loadProducts();
             } catch (error) {
-                console.error('Error transferring to plane:', error);
+                console.error('Error al transferir al avión:', error);
             }
         }
     }
@@ -307,7 +307,7 @@ async manageTicketItems(ticketId) {
         const ticketDetails = await planeStockResponse.json();
 
         if (ticketDetails.error) {
-            alert('Error loading ticket details: ' + ticketDetails.error);
+            alert('Error al cargar los detalles de los tickets: ' + ticketDetails.error);
             return;
         }
 
@@ -315,21 +315,21 @@ async manageTicketItems(ticketId) {
         container.innerHTML = `
             <h4>Ticket: ${ticketDetails.ticket_number} - Plane: ${ticketDetails.plane_name}</h4>
             <div class="add-item-form">
-                <h5>Add Item to Ticket</h5>
+                <h5>Añadir item al ticket</h5>
                 <select id="itemProduct_${ticketId}">
-                    <option value="">Select Product</option>
+                    <option value="">Seleccione un producto</option>
                 </select>
                 <input type="number" id="itemQuantity_${ticketId}" placeholder="Quantity" min="1">
-                <button onclick="app.addTicketItem(${ticketId})">Add Item</button>
+                <button onclick="app.addTicketItem(${ticketId})">Añadir Item</button>
             </div>
             <div class="ticket-items-list">
-                <h5>Items Used</h5>
+                <h5>Items Usados</h5>
                 <table>
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Quantity Used</th>
-                            <th>Actions</th>
+                            <th>Producto</th>
+                            <th>Cantidad Used</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="ticketItemsTable_${ticketId}">
@@ -357,7 +357,7 @@ async manageTicketItems(ticketId) {
                 <td>${item.product_name}</td>
                 <td>${item.quantity_used}</td>
                 <td>
-                    <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
+                    <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Eliminar</button>
                 </td>
             `;
         });
@@ -365,7 +365,7 @@ async manageTicketItems(ticketId) {
         document.getElementById('ticketDetails').style.display = 'block';
     } catch (error) {
         console.error('Error loading ticket items:', error);
-        alert('Error loading ticket items');
+        alert('Error al cargar los items del ticket');
     }
 }
 
@@ -374,7 +374,7 @@ async addTicketItem(ticketId) {
     const quantity = document.getElementById(`itemQuantity_${ticketId}`).value;
 
     if (!productId || !quantity || quantity <= 0) {
-        alert('Please select a product and enter a valid quantity');
+        alert('Por favor seleccione un producto e ingrese una cantidad valida');
         return;
     }
 
@@ -395,16 +395,16 @@ async addTicketItem(ticketId) {
             document.getElementById(`itemQuantity_${ticketId}`).value = '';
             this.manageTicketItems(ticketId); // Refresh the items list
         } else {
-            alert('Error adding item: ' + (result.error || 'Unknown error'));
+            alert('Error al añadir item: ' + (result.error || 'Error desconocido'));
         }
     } catch (error) {
-        console.error('Error adding ticket item:', error);
-        alert('Error adding ticket item');
+        console.error('Error añadiento ticket item:', error);
+        alert('Error añadiendo ticket item');
     }
 }
 
 async removeTicketItem(itemId, ticketId) {
-    if (!confirm('Are you sure you want to remove this item?')) {
+    if (!confirm('¿Está seguro de que desea eliminar este elemento?')) {
         return;
     }
 
@@ -419,11 +419,11 @@ async removeTicketItem(itemId, ticketId) {
         if (result.success) {
             this.manageTicketItems(ticketId); // Refresh the items list
         } else {
-            alert('Error removing item: ' + (result.error || 'Unknown error'));
+            alert('Error removiendo item: ' + (result.error || 'Error desconocido'));
         }
     } catch (error) {
-        console.error('Error removing ticket item:', error);
-        alert('Error removing ticket item');
+        console.error('Error removiendo ticket item:', error);
+        alert('Error removiendo ticket item');
     }
 }
 }
