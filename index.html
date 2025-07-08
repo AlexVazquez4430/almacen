@@ -4,31 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warehouse Management System</title>
+    <title>Sistema de almacén</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Warehouse Management System</h1>
+            <h1>Sistema de Almacén</h1>
             <nav>
-                <button class="nav-btn active" onclick="showSection('warehouse')">Warehouse</button>
-                <button class="nav-btn" onclick="showSection('planes')">Planes</button>
+                <button class="nav-btn active" onclick="showSection('warehouse')">Alamacén</button>
+                <button class="nav-btn" onclick="showSection('planes')">Aviones</button>
                 <button class="nav-btn" onclick="showSection('tickets')">Tickets</button>
             </nav>
         </header>
 
         <!-- Warehouse Section -->
         <section id="warehouse" class="section active">
-            <h2>Main Warehouse</h2>
+            <h2>Almacén/Cedis</h2>
             
             <div class="form-container">
-                <h3>Add Product</h3>
+                <h3>Añadir producto</h3>
                 <form id="productForm">
                     <input type="text" id="productName" placeholder="Product Name" required>
                     <input type="text" id="productDescription" placeholder="Description">
                     <input type="number" id="productStock" placeholder="Initial Stock" min="0" required>
-                    <button type="submit">Add Product</button>
+                    <button type="submit">Añadir producto</button>
                 </form>
             </div>
 
@@ -37,10 +37,10 @@
                 <table id="productsTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Description</th>
+                            <th>Nombre</th>
+                            <th>Descripcion</th>
                             <th>Stock</th>
-                            <th>Actions</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -50,25 +50,25 @@
 
         <!-- Planes Section -->
         <section id="planes" class="section">
-            <h2>Planes Management</h2>
+            <h2>Administración de Aviones</h2>
             
             <div class="form-container">
-                <h3>Add Plane</h3>
+                <h3>Añadir Avión</h3>
                 <form id="planeForm">
                     <input type="text" id="planeName" placeholder="Plane Name" required>
                     <input type="text" id="planeDescription" placeholder="Description">
-                    <button type="submit">Add Plane</button>
+                    <button type="submit">Añadir Avión</button>
                 </form>
             </div>
 
             <div class="table-container">
-                <h3>Planes</h3>
+                <h3>Aviones</h3>
                 <table id="planesTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Actions</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -76,24 +76,24 @@
             </div>
 
             <div id="planeDetails" class="plane-details" style="display: none;">
-                <h3>Plane Stock Management</h3>
+                <h3>Manejo de almacenamiento de los aviones</h3>
                 <div id="planeStockContainer"></div>
             </div>
         </section>
 
         <!-- Tickets Section -->
         <section id="tickets" class="section">
-            <h2>Tickets Management</h2>
+            <h2>Menejo de Tickets</h2>
             
             <div class="form-container">
-                <h3>Create Ticket</h3>
+                <h3>Crear Ticket</h3>
                 <form id="ticketForm">
                     <select id="ticketPlane" required>
-                        <option value="">Select Plane</option>
+                        <option value="">Seleccionar Avión</option>
                     </select>
                     <input type="text" id="ticketNumber" placeholder="Ticket Number" required>
                     <input type="text" id="ticketDescription" placeholder="Description">
-                    <button type="submit">Create Ticket</button>
+                    <button type="submit">Crear Ticket</button>
                 </form>
             </div>
 
@@ -103,10 +103,10 @@
                     <thead>
                         <tr>
                             <th>Ticket #</th>
-                            <th>Plane</th>
-                            <th>Description</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th>Aviób</th>
+                            <th>Descripcion</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -114,7 +114,7 @@
             </div>
 
             <div id="ticketDetails" class="ticket-details" style="display: none;">
-                <h3>Ticket Items</h3>
+                <h3>Detalles del Ticket</h3>
                 <div id="ticketItemsContainer"></div>
             </div>
         </section>
