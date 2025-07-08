@@ -293,6 +293,139 @@ class WarehouseApp {
             }
         }
     }
+    // New changes for the commit 4
+
+// Add this function to the WarehouseApp class
+async manageTicketItems(ticketId) {
+    try {
+        const [ticketResponse, planeStockResponse] = await Promise.all([
+            fetch(`api/ticket-items.php?ticket_id=${ticketId}`),
+            fetch(`api/ticket-details.php?ticket_id=${ticketId}`)
+        ]);
+
+        const ticketItems = await ticketResponse.json();
+        const ticketDetails = await planeStockResponse.json();
+
+        if (ticketDetails.error) {
+            alert('Error loading ticket details: ' + ticketDetails.error);
+            return;
+        }
+
+        const container = document.getElementById('ticketItemsContainer');
+        container.innerHTML = `
+            <h4>Ticket: ${ticketDetails.ticket_number} - Plane: ${ticketDetails.plane_name}</h4>
+            <div class="add-item-form">
+                <h5>Add Item to Ticket</h5>
+                <select id="itemProduct_${ticketId}">
+                    <option value="">Select Product</option>
+                </select>
+                <input type="number" id="itemQuantity_${ticketId}" placeholder="Quantity" min="1">
+                <button onclick="app.addTicketItem(${ticketId})">Add Item</button>
+            </div>
+            <div class="ticket-items-list">
+                <h5>Items Used</h5>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity Used</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketItemsTable_${ticketId}">
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // Load available products for this plane
+        const productsSelect = document.getElementById(`itemProduct_${ticketId}`);
+        ticketDetails.available_products.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.product_id;
+            option.textContent = `${product.product_name} (Available: ${product.current_stock})`;
+            option.disabled = product.current_stock <= 0;
+            productsSelect.appendChild(option);
+        });
+
+        // Load existing ticket items
+        const tbody = document.getElementById(`ticketItemsTable_${ticketId}`);
+        tbody.innerHTML = '';
+        ticketItems.forEach(item => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.product_name}</td>
+                <td>${item.quantity_used}</td>
+                <td>
+                    <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
+                </td>
+            `;
+        });
+
+        document.getElementById('ticketDetails').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading ticket items:', error);
+        alert('Error loading ticket items');
+    }
+}
+
+async addTicketItem(ticketId) {
+    const productId = document.getElementById(`itemProduct_${ticketId}`).value;
+    const quantity = document.getElementById(`itemQuantity_${ticketId}`).value;
+
+    if (!productId || !quantity || quantity <= 0) {
+        alert('Please select a product and enter a valid quantity');
+        return;
+    }
+
+    try {
+        const response = await fetch('api/ticket-items.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                product_id: productId,
+                quantity_used: parseInt(quantity)
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById(`itemProduct_${ticketId}`).value = '';
+            document.getElementById(`itemQuantity_${ticketId}`).value = '';
+            this.manageTicketItems(ticketId); // Refresh the items list
+        } else {
+            alert('Error adding item: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error adding ticket item:', error);
+        alert('Error adding ticket item');
+    }
+}
+
+async removeTicketItem(itemId, ticketId) {
+    if (!confirm('Are you sure you want to remove this item?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api/ticket-items.php', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: itemId })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            this.manageTicketItems(ticketId); // Refresh the items list
+        } else {
+            alert('Error removing item: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error removing ticket item:', error);
+        alert('Error removing ticket item');
+    }
+}
 }
 
 // Global functions for onclick events
