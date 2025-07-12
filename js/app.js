@@ -1,6 +1,10 @@
 class WarehouseApp {
     constructor() {
         this.currentSection = 'warehouse';
+        this.editingProduct = null;
+        this.editingPlane = null;
+        this.editingTicket = null;
+        this.editingPilot = null;
         this.init();
     }
 
@@ -13,17 +17,22 @@ class WarehouseApp {
         // Form submissions
         document.getElementById('productForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.addProduct();
+            this.saveProduct();
         });
 
         document.getElementById('planeForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.addPlane();
+            this.savePlane();
         });
 
         document.getElementById('ticketForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.createTicket();
+            this.saveTicket();
+        });
+
+        document.getElementById('pilotForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.savePilot();
         });
     }
 
@@ -51,28 +60,50 @@ class WarehouseApp {
             case 'tickets':
                 await this.loadTickets();
                 await this.loadPlanesForTickets();
+                await this.loadPilotsForTickets();
+                break;
+            case 'pilots':
+                await this.loadPilots();
                 break;
         }
     }
 
-    async addProduct() {
+    // PRODUCTS CRUD
+    async saveProduct() {
         const name = document.getElementById('productName').value;
         const description = document.getElementById('productDescription').value;
+        const price = document.getElementById('productPrice').value;
         const stock = document.getElementById('productStock').value;
+        const id = document.getElementById('productId').value;
 
+        const data = { name, description, price, total_stock: stock };
+        
         try {
-            const response = await fetch('api/products.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description, stock })
-            });
+            let response;
+            if (id) {
+                // Update existing product
+                data.id = id;
+                response = await fetch('api/products.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // Create new product
+                data.stock = stock; // For new products, use 'stock' instead of 'total_stock'
+                response = await fetch('api/products.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
 
             if (response.ok) {
-                document.getElementById('productForm').reset();
+                this.cancelProductEdit();
                 this.loadProducts();
             }
         } catch (error) {
-            console.error('Error adding product:', error);
+            console.error('Error saving product:', error);
         }
     }
 
@@ -89,9 +120,12 @@ class WarehouseApp {
                 row.innerHTML = `
                     <td>${product.name}</td>
                     <td>${product.description || ''}</td>
+                    <td>$${parseFloat(product.price).toFixed(2)}</td>
                     <td>${product.total_stock}</td>
                     <td>
+                        <button class="btn-small btn-primary" onclick="app.editProduct(${product.id})">Editar</button>
                         <button class="btn-small btn-success" onclick="app.updateStock(${product.id})">Update Stock</button>
+                        <button class="btn-small btn-danger" onclick="app.deleteProduct(${product.id})">Eliminar</button>
                     </td>
                 `;
             });
@@ -100,23 +134,106 @@ class WarehouseApp {
         }
     }
 
-    async addPlane() {
+    editProduct(id) {
+        fetch('api/products.php')
+            .then(response => response.json())
+            .then(products => {
+                const product = products.find(p => p.id == id);
+                if (product) {
+                    document.getElementById('productId').value = product.id;
+                    document.getElementById('productName').value = product.name;
+                    document.getElementById('productDescription').value = product.description || '';
+                    document.getElementById('productPrice').value = product.price;
+                    document.getElementById('productStock').value = product.total_stock;
+                    
+                    document.getElementById('productFormTitle').textContent = 'Editar Producto';
+                    document.getElementById('productSubmitBtn').textContent = 'Actualizar Producto';
+                    document.getElementById('productCancelBtn').style.display = 'inline-block';
+                    
+                    this.editingProduct = id;
+                }
+            });
+    }
+
+    cancelProductEdit() {
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+        document.getElementById('productFormTitle').textContent = 'Añadir producto';
+        document.getElementById('productSubmitBtn').textContent = 'Añadir producto';
+        document.getElementById('productCancelBtn').style.display = 'none';
+        this.editingProduct = null;
+    }
+
+    async deleteProduct(id) {
+        if (confirm('¿Está seguro de que desea eliminar este producto?')) {
+            try {
+                const response = await fetch('api/products.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                if (response.ok) {
+                    this.loadProducts();
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
+        }
+    }
+
+    async updateStock(productId) {
+        const newStock = prompt('Enter new stock quantity:');
+        if (newStock !== null && !isNaN(newStock)) {
+            try {
+                const response = await fetch('api/products.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: productId, stock: parseInt(newStock) })
+                });
+
+                if (response.ok) {
+                    this.loadProducts();
+                }
+            } catch (error) {
+                console.error('Error updating stock:', error);
+            }
+        }
+    }
+
+    // PLANES CRUD
+    async savePlane() {
         const name = document.getElementById('planeName').value;
         const description = document.getElementById('planeDescription').value;
+        const id = document.getElementById('planeId').value;
 
+        const data = { name, description };
+        
         try {
-            const response = await fetch('api/planes.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, description })
-            });
+            let response;
+            if (id) {
+                // Update existing plane
+                data.id = id;
+                response = await fetch('api/planes.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // Create new plane
+                response = await fetch('api/planes.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
 
             if (response.ok) {
-                document.getElementById('planeForm').reset();
+                this.cancelPlaneEdit();
                 this.loadPlanes();
             }
         } catch (error) {
-            console.error('Error adding plane:', error);
+            console.error('Error saving plane:', error);
         }
     }
 
@@ -134,7 +251,9 @@ class WarehouseApp {
                     <td>${plane.name}</td>
                     <td>${plane.description || ''}</td>
                     <td>
-                        <button class="btn-small" onclick="app.managePlaneStock(${plane.id})">Manage Stock</button>
+                        <button class="btn-small btn-primary" onclick="app.editPlane(${plane.id})">Editar</button>
+                        <button class="btn-small btn-info" onclick="app.managePlaneStock(${plane.id})">Manage Stock</button>
+                        <button class="btn-small btn-danger" onclick="app.deletePlane(${plane.id})">Eliminar</button>
                     </td>
                 `;
             });
@@ -143,62 +262,87 @@ class WarehouseApp {
         }
     }
 
-    async managePlaneStock(planeId) {
-        try {
-            const [stockResponse, productsResponse] = await Promise.all([
-                fetch(`api/plane-stock.php?plane_id=${planeId}`),
-                fetch('api/products.php')
-            ]);
-
-            const stock = await stockResponse.json();
-            const products = await productsResponse.json();
-
-            const container = document.getElementById('planeStockContainer');
-            container.innerHTML = '';
-
-            products.forEach(product => {
-                const currentStock = stock.find(s => s.product_id == product.id);
-                const stockLevel = currentStock ? currentStock.current_stock : 0;
-                const minimum = currentStock ? currentStock.minimum_quantity : 0;
-                const isLow = stockLevel < minimum;
-
-                const div = document.createElement('div');
-                div.className = `stock-item ${isLow ? 'stock-low' : ''}`;
-                div.innerHTML = `
-                    <span>${product.name} (${stockLevel}/${minimum})</span>
-                    <div>
-                        <input type="number" id="min_${product.id}" value="${minimum}" min="0" style="width: 80px;">
-                        <button class="btn-small" onclick="app.setMinimum(${planeId}, ${product.id})">Set Min</button>
-                        <button class="btn-small btn-success" onclick="app.transferToPlane(${planeId}, ${product.id})">Transfer</button>
-                    </div>
-                `;
-                container.appendChild(div);
+    editPlane(id) {
+        fetch('api/planes.php')
+            .then(response => response.json())
+            .then(planes => {
+                const plane = planes.find(p => p.id == id);
+                if (plane) {
+                    document.getElementById('planeId').value = plane.id;
+                    document.getElementById('planeName').value = plane.name;
+                    document.getElementById('planeDescription').value = plane.description || '';
+                    
+                    document.getElementById('planeFormTitle').textContent = 'Editar Avión';
+                    document.getElementById('planeSubmitBtn').textContent = 'Actualizar Avión';
+                    document.getElementById('planeCancelBtn').style.display = 'inline-block';
+                    
+                    this.editingPlane = id;
+                }
             });
+    }
 
-            document.getElementById('planeDetails').style.display = 'block';
-        } catch (error) {
-            console.error('Error loading plane stock:', error);
+    cancelPlaneEdit() {
+        document.getElementById('planeForm').reset();
+        document.getElementById('planeId').value = '';
+        document.getElementById('planeFormTitle').textContent = 'Añadir Avión';
+        document.getElementById('planeSubmitBtn').textContent = 'Añadir Avión';
+        document.getElementById('planeCancelBtn').style.display = 'none';
+        this.editingPlane = null;
+    }
+
+    async deletePlane(id) {
+        if (confirm('¿Está seguro de que desea eliminar este avión?')) {
+            try {
+                const response = await fetch('api/planes.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                if (response.ok) {
+                    this.loadPlanes();
+                }
+            } catch (error) {
+                console.error('Error deleting plane:', error);
+            }
         }
     }
 
-    async createTicket() {
-        const planeId = document.getElementById('ticketPlane').value;
-        const ticketNumber = document.getElementById('ticketNumber').value;
+    // TICKETS CRUD
+    async saveTicket() {
+        const plane_id = document.getElementById('ticketPlane').value;
+        const pilot_id = document.getElementById('ticketPilot').value;
+        const ticket_number = document.getElementById('ticketNumber').value;
         const description = document.getElementById('ticketDescription').value;
+        const id = document.getElementById('ticketId').value;
 
+        const data = { plane_id, pilot_id, ticket_number, description };
+        
         try {
-            const response = await fetch('api/tickets.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plane_id: planeId, ticket_number: ticketNumber, description })
-            });
+            let response;
+            if (id) {
+                // Update existing ticket
+                data.id = id;
+                response = await fetch('api/tickets.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // Create new ticket
+                response = await fetch('api/tickets.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
 
             if (response.ok) {
-                document.getElementById('ticketForm').reset();
+                this.cancelTicketEdit();
                 this.loadTickets();
             }
         } catch (error) {
-            console.error('Error creating ticket:', error);
+            console.error('Error saving ticket:', error);
         }
     }
 
@@ -212,18 +356,70 @@ class WarehouseApp {
 
             tickets.forEach(ticket => {
                 const row = tbody.insertRow();
+                const date = new Date(ticket.created_at).toLocaleDateString();
                 row.innerHTML = `
                     <td>${ticket.ticket_number}</td>
-                    <td>${ticket.plane_name}</td>
+                    <td>${ticket.plane_name || 'N/A'}</td>
+                    <td>${ticket.pilot_name || 'N/A'}</td>
                     <td>${ticket.description || ''}</td>
-                    <td>${new Date(ticket.created_at).toLocaleDateString()}</td>
+                    <td>${date}</td>
                     <td>
-                        <button class="btn-small" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
+                        <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
+                        <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
+                        <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
                     </td>
                 `;
             });
         } catch (error) {
             console.error('Error loading tickets:', error);
+        }
+    }
+
+    editTicket(id) {
+        fetch('api/tickets.php')
+            .then(response => response.json())
+            .then(tickets => {
+                const ticket = tickets.find(t => t.id == id);
+                if (ticket) {
+                    document.getElementById('ticketId').value = ticket.id;
+                    document.getElementById('ticketPlane').value = ticket.plane_id;
+                    document.getElementById('ticketPilot').value = ticket.pilot_id;
+                    document.getElementById('ticketNumber').value = ticket.ticket_number;
+                    document.getElementById('ticketDescription').value = ticket.description || '';
+                    
+                    document.getElementById('ticketFormTitle').textContent = 'Editar Ticket';
+                    document.getElementById('ticketSubmitBtn').textContent = 'Actualizar Ticket';
+                    document.getElementById('ticketCancelBtn').style.display = 'inline-block';
+                    
+                    this.editingTicket = id;
+                }
+            });
+    }
+
+    cancelTicketEdit() {
+        document.getElementById('ticketForm').reset();
+        document.getElementById('ticketId').value = '';
+        document.getElementById('ticketFormTitle').textContent = 'Crear Ticket';
+        document.getElementById('ticketSubmitBtn').textContent = 'Crear Ticket';
+        document.getElementById('ticketCancelBtn').style.display = 'none';
+        this.editingTicket = null;
+    }
+
+    async deleteTicket(id) {
+        if (confirm('¿Está seguro de que desea eliminar este ticket?')) {
+            try {
+                const response = await fetch('api/tickets.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                if (response.ok) {
+                    this.loadTickets();
+                }
+            } catch (error) {
+                console.error('Error deleting ticket:', error);
+            }
         }
     }
 
@@ -233,205 +429,335 @@ class WarehouseApp {
             const planes = await response.json();
             
             const select = document.getElementById('ticketPlane');
-            select.innerHTML = '<option value="">Seleccione un avión</option>';
+            select.innerHTML = '<option value="">Seleccionar Avión</option>';
 
             planes.forEach(plane => {
-                const option = document.createElement('opción');
+                const option = document.createElement('option');
                 option.value = plane.id;
                 option.textContent = plane.name;
                 select.appendChild(option);
             });
         } catch (error) {
-            console.error('Error al cargar los tickets:', error);
+            console.error('Error loading planes for tickets:', error);
         }
     }
 
-    // Additional methods for stock management, transfers, etc.
-    async updateStock(productId) {
-        const newStock = prompt('Ingrese la nueva cantidad de stock:');
-        if (newStock !== null && !isNaN(newStock)) {
-            try {
-                await fetch('api/products.php', {
+    async loadPilotsForTickets() {
+        try {
+            const response = await fetch('api/pilots.php');
+            const pilots = await response.json();
+            
+            const select = document.getElementById('ticketPilot');
+            select.innerHTML = '<option value="">Seleccionar Piloto</option>';
+
+            pilots.forEach(pilot => {
+                const option = document.createElement('option');
+                option.value = pilot.id;
+                option.textContent = pilot.name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading pilots for tickets:', error);
+        }
+    }
+
+    // PILOTS CRUD
+    async savePilot() {
+        const name = document.getElementById('pilotName').value;
+        const license_number = document.getElementById('pilotLicense').value;
+        const email = document.getElementById('pilotEmail').value;
+        const phone = document.getElementById('pilotPhone').value;
+        const id = document.getElementById('pilotId').value;
+
+        const data = { name, license_number, email, phone };
+        
+        try {
+            let response;
+            if (id) {
+                // Update existing pilot
+                data.id = id;
+                response = await fetch('api/pilots.php', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: productId, stock: parseInt(newStock) })
+                    body: JSON.stringify(data)
                 });
-                this.loadProducts();
-            } catch (error) {
-                console.error('Error al actualizar el stock:', error);
+            } else {
+                // Create new pilot
+                response = await fetch('api/pilots.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
             }
+
+            if (response.ok) {
+                this.cancelPilotEdit();
+                this.loadPilots();
+            }
+        } catch (error) {
+            console.error('Error saving pilot:', error);
+        }
+    }
+
+    async loadPilots() {
+        try {
+            const response = await fetch('api/pilots.php');
+            const pilots = await response.json();
+            
+            const tbody = document.querySelector('#pilotsTable tbody');
+            tbody.innerHTML = '';
+
+            pilots.forEach(pilot => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${pilot.name}</td>
+                    <td>${pilot.license_number}</td>
+                    <td>${pilot.email || ''}</td>
+                    <td>${pilot.phone || ''}</td>
+                    <td>
+                        <button class="btn-small btn-primary" onclick="app.editPilot(${pilot.id})">Editar</button>
+                        <button class="btn-small btn-danger" onclick="app.deletePilot(${pilot.id})">Eliminar</button>
+                    </td>
+                `;
+            });
+        } catch (error) {
+            console.error('Error loading pilots:', error);
+        }
+    }
+
+    editPilot(id) {
+        fetch('api/pilots.php')
+            .then(response => response.json())
+            .then(pilots => {
+                const pilot = pilots.find(p => p.id == id);
+                if (pilot) {
+                    document.getElementById('pilotId').value = pilot.id;
+                    document.getElementById('pilotName').value = pilot.name;
+                    document.getElementById('pilotLicense').value = pilot.license_number;
+                    document.getElementById('pilotEmail').value = pilot.email || '';
+                    document.getElementById('pilotPhone').value = pilot.phone || '';
+                    
+                    document.getElementById('pilotFormTitle').textContent = 'Editar Piloto';
+                    document.getElementById('pilotSubmitBtn').textContent = 'Actualizar Piloto';
+                    document.getElementById('pilotCancelBtn').style.display = 'inline-block';
+                    
+                    this.editingPilot = id;
+                }
+            });
+    }
+
+    cancelPilotEdit() {
+        document.getElementById('pilotForm').reset();
+        document.getElementById('pilotId').value = '';
+        document.getElementById('pilotFormTitle').textContent = 'Añadir Piloto';
+        document.getElementById('pilotSubmitBtn').textContent = 'Añadir Piloto';
+        document.getElementById('pilotCancelBtn').style.display = 'none';
+        this.editingPilot = null;
+    }
+
+    async deletePilot(id) {
+        if (confirm('¿Está seguro de que desea eliminar este piloto?')) {
+            try {
+                const response = await fetch('api/pilots.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                if (response.ok) {
+                    this.loadPilots();
+                }
+            } catch (error) {
+                console.error('Error deleting pilot:', error);
+            }
+        }
+    }
+
+    // EXISTING METHODS (keeping the original functionality)
+    async managePlaneStock(planeId) {
+        try {
+            const response = await fetch('api/products.php');
+            const products = await response.json();
+            
+            const stockResponse = await fetch(`api/plane-stock.php?plane_id=${planeId}`);
+            const stockData = await stockResponse.json();
+            
+            const planeDetails = document.getElementById('planeDetails');
+            const container = document.getElementById('planeStockContainer');
+            
+            container.innerHTML = '<h4>Product Stock Management</h4>';
+            
+            products.forEach(product => {
+                const stock = stockData.find(s => s.product_id == product.id);
+                const currentStock = stock ? stock.current_stock : 0;
+                const minimumStock = stock ? stock.minimum_quantity : 0;
+                
+                const productDiv = document.createElement('div');
+                productDiv.className = 'stock-item';
+                productDiv.innerHTML = `
+                    <div class="stock-info">
+                        <strong>${product.name}</strong><br>
+                        Current Stock: ${currentStock}<br>
+                        Minimum: ${minimumStock}<br>
+                        Warehouse Stock: ${product.total_stock}
+                    </div>
+                    <div class="stock-actions">
+                        <button onclick="app.setMinimum(${planeId}, ${product.id})">Set Minimum</button>
+                        <button onclick="app.transferToPlane(${planeId}, ${product.id})">Transfer</button>
+                    </div>
+                `;
+                container.appendChild(productDiv);
+            });
+            
+            planeDetails.style.display = 'block';
+        } catch (error) {
+            console.error('Error managing plane stock:', error);
         }
     }
 
     async setMinimum(planeId, productId) {
-        const minimum = document.getElementById(`min_${productId}`).value;
-        try {
-            await fetch('api/plane-stock.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plane_id: planeId, product_id: productId, minimum_quantity: parseInt(minimum) })
-            });
-            this.managePlaneStock(planeId);
-        } catch (error) {
-            console.error('Error setting minimum:', error);
+        const minimum = prompt('Set minimum stock level:');
+        if (minimum !== null && !isNaN(minimum)) {
+            try {
+                const response = await fetch('api/plane-stock.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plane_id: planeId, product_id: productId, minimum_quantity: parseInt(minimum) })
+                });
+
+                if (response.ok) {
+                    this.managePlaneStock(planeId);
+                }
+            } catch (error) {
+                console.error('Error setting minimum:', error);
+            }
         }
     }
 
     async transferToPlane(planeId, productId) {
-        const quantity = prompt('Ingrese la cantidad a transferir:');
+        const quantity = prompt('Enter quantity to transfer:');
         if (quantity !== null && !isNaN(quantity)) {
             try {
-                await fetch('api/transfer.php', {
+                const response = await fetch('api/transfer.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ plane_id: planeId, product_id: productId, quantity: parseInt(quantity) })
                 });
-                this.managePlaneStock(planeId);
-                this.loadProducts();
+
+                if (response.ok) {
+                    this.managePlaneStock(planeId);
+                    this.loadProducts();
+                }
             } catch (error) {
-                console.error('Error al transferir al avión:', error);
+                console.error('Error transferring to plane:', error);
             }
         }
     }
-    // New changes for the commit 4
 
-// Add this function to the WarehouseApp class
-async manageTicketItems(ticketId) {
-    try {
-        const [ticketResponse, planeStockResponse] = await Promise.all([
-            fetch(`api/ticket-items.php?ticket_id=${ticketId}`),
-            fetch(`api/ticket-details.php?ticket_id=${ticketId}`)
-        ]);
+    async manageTicketItems(ticketId) {
+        try {
+            const response = await fetch(`api/ticket-details.php?ticket_id=${ticketId}`);
+            const ticketDetails = await response.json();
+            
+            const itemsResponse = await fetch(`api/ticket-items.php?ticket_id=${ticketId}`);
+            const ticketItems = await itemsResponse.json();
+            
+            const ticketDetailsDiv = document.getElementById('ticketDetails');
+            const container = document.getElementById('ticketItemsContainer');
+            
+            container.innerHTML = `
+                <h4>Ticket Items Management</h4>
+                <div class="add-item-form">
+                    <h5>Add Item</h5>
+                    <select id="itemProduct">
+                        <option value="">Select Product</option>
+                    </select>
+                    <input type="number" id="itemQuantity" placeholder="Quantity" min="1">
+                    <button onclick="app.addTicketItem(${ticketId})">Add Item</button>
+                </div>
+                <div class="ticket-items-list">
+                    <h5>Current Items</h5>
+                </div>
+            `;
+            
+            // Populate available products
+            const productSelect = document.getElementById('itemProduct');
+            ticketDetails.available_products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (Available: ${product.current_stock})`;
+                productSelect.appendChild(option);
+            });
+            
+            // Show current items
+            const itemsList = container.querySelector('.ticket-items-list');
+            ticketItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'ticket-item';
+                itemDiv.innerHTML = `
+                    <span>${item.product_name} - Quantity: ${item.quantity}</span>
+                    <button onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
+                `;
+                itemsList.appendChild(itemDiv);
+            });
+            
+            ticketDetailsDiv.style.display = 'block';
+        } catch (error) {
+            console.error('Error managing ticket items:', error);
+        }
+    }
 
-        const ticketItems = await ticketResponse.json();
-        const ticketDetails = await planeStockResponse.json();
-
-        if (ticketDetails.error) {
-            alert('Error al cargar los detalles de los tickets: ' + ticketDetails.error);
+    async addTicketItem(ticketId) {
+        const productId = document.getElementById('itemProduct').value;
+        const quantity = document.getElementById('itemQuantity').value;
+        
+        if (!productId || !quantity) {
+            alert('Please select a product and enter quantity');
             return;
         }
+        
+        try {
+            const response = await fetch('api/ticket-items.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    product_id: productId,
+                    quantity: parseInt(quantity)
+                })
+            });
 
-        const container = document.getElementById('ticketItemsContainer');
-        container.innerHTML = `
-            <h4>Ticket: ${ticketDetails.ticket_number} - Plane: ${ticketDetails.plane_name}</h4>
-            <div class="add-item-form">
-                <h5>Añadir item al ticket</h5>
-                <select id="itemProduct_${ticketId}">
-                    <option value="">Seleccione un producto</option>
-                </select>
-                <input type="number" id="itemQuantity_${ticketId}" placeholder="Quantity" min="1">
-                <button onclick="app.addTicketItem(${ticketId})">Añadir Item</button>
-            </div>
-            <div class="ticket-items-list">
-                <h5>Items Usados</h5>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad Used</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ticketItemsTable_${ticketId}">
-                    </tbody>
-                </table>
-            </div>
-        `;
-
-        // Load available products for this plane
-        const productsSelect = document.getElementById(`itemProduct_${ticketId}`);
-        ticketDetails.available_products.forEach(product => {
-            const option = document.createElement('option');
-            option.value = product.product_id;
-            option.textContent = `${product.product_name} (Available: ${product.current_stock})`;
-            option.disabled = product.current_stock <= 0;
-            productsSelect.appendChild(option);
-        });
-
-        // Load existing ticket items
-        const tbody = document.getElementById(`ticketItemsTable_${ticketId}`);
-        tbody.innerHTML = '';
-        ticketItems.forEach(item => {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td>${item.product_name}</td>
-                <td>${item.quantity_used}</td>
-                <td>
-                    <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Eliminar</button>
-                </td>
-            `;
-        });
-
-        document.getElementById('ticketDetails').style.display = 'block';
-    } catch (error) {
-        console.error('Error loading ticket items:', error);
-        alert('Error al cargar los items del ticket');
-    }
-}
-
-async addTicketItem(ticketId) {
-    const productId = document.getElementById(`itemProduct_${ticketId}`).value;
-    const quantity = document.getElementById(`itemQuantity_${ticketId}`).value;
-
-    if (!productId || !quantity || quantity <= 0) {
-        alert('Por favor seleccione un producto e ingrese una cantidad valida');
-        return;
-    }
-
-    try {
-        const response = await fetch('api/ticket-items.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ticket_id: ticketId,
-                product_id: productId,
-                quantity_used: parseInt(quantity)
-            })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            document.getElementById(`itemProduct_${ticketId}`).value = '';
-            document.getElementById(`itemQuantity_${ticketId}`).value = '';
-            this.manageTicketItems(ticketId); // Refresh the items list
-        } else {
-            alert('Error al añadir item: ' + (result.error || 'Error desconocido'));
+            if (response.ok) {
+                this.manageTicketItems(ticketId);
+            }
+        } catch (error) {
+            console.error('Error adding ticket item:', error);
         }
-    } catch (error) {
-        console.error('Error añadiento ticket item:', error);
-        alert('Error añadiendo ticket item');
-    }
-}
-
-async removeTicketItem(itemId, ticketId) {
-    if (!confirm('¿Está seguro de que desea eliminar este elemento?')) {
-        return;
     }
 
-    try {
-        const response = await fetch('api/ticket-items.php', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: itemId })
-        });
+    async removeTicketItem(itemId, ticketId) {
+        if (confirm('Remove this item from the ticket?')) {
+            try {
+                const response = await fetch('api/ticket-items.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId })
+                });
 
-        const result = await response.json();
-        if (result.success) {
-            this.manageTicketItems(ticketId); // Refresh the items list
-        } else {
-            alert('Error removiendo item: ' + (result.error || 'Error desconocido'));
+                if (response.ok) {
+                    this.manageTicketItems(ticketId);
+                }
+            } catch (error) {
+                console.error('Error removing ticket item:', error);
+            }
         }
-    } catch (error) {
-        console.error('Error removiendo ticket item:', error);
-        alert('Error removiendo ticket item');
     }
 }
-}
 
-// Global functions for onclick events
+// Global function for navigation
 function showSection(section) {
     app.showSection(section);
 }
 
-// Initialize app
+// Initialize the app
 const app = new WarehouseApp();

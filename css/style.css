@@ -135,20 +135,40 @@ tr:hover {
     margin: 0 2px;
 }
 
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
 .btn-danger {
-    background: #e74c3c;
+    background-color: #e74c3c;
+    color: white;
 }
 
 .btn-danger:hover {
-    background: #c0392b;
+    background-color: #c0392b;
 }
 
 .btn-success {
-    background: #27ae60;
+    background-color: #27ae60;
+    color: white;
 }
 
 .btn-success:hover {
-    background: #229954;
+    background-color: #229954;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
 }
 
 .stock-low {
@@ -161,9 +181,56 @@ tr:hover {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    margin: 5px 0;
-    background: #f8f9fa;
+    border: 1px solid #ddd;
     border-radius: 4px;
+    margin-bottom: 10px;
+    background: white;
+}
+
+.stock-info {
+    flex: 1;
+}
+
+.stock-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.stock-actions button {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.add-item-form {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.add-item-form h5 {
+    margin-bottom: 10px;
+}
+
+.add-item-form select,
+.add-item-form input {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.ticket-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    background: white;
+}
+
+.ticket-items-list h5 {
+    margin-bottom: 10px;
 }
 
 .plane-details, .ticket-details {
@@ -177,16 +244,37 @@ tr:hover {
     .container {
         padding: 10px;
     }
-    
+
     form {
         flex-direction: column;
     }
-    
+
     nav {
         flex-direction: column;
     }
-    
+
     table {
         font-size: 14px;
+    }
+
+    .form-container form {
+        flex-direction: column;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container button {
+        width: 100%;
+    }
+
+    .stock-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stock-actions {
+        margin-top: 10px;
+        width: 100%;
+        justify-content: flex-end;
     }
 }

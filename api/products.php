@@ -32,8 +32,13 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("INSERT INTO products (name, description, total_stock) VALUES (?, ?, ?)");
-                $stmt->execute([$data['name'], $data['description'] ?? '', $data['stock']]);
+                $stmt = $db->prepare("INSERT INTO products (name, description, price, total_stock) VALUES (?, ?, ?, ?)");
+                $stmt->execute([
+                    $data['name'], 
+                    $data['description'] ?? '', 
+                    $data['price'], 
+                    $data['stock']
+                ]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Insert failed: ' . $e->getMessage()]);
@@ -48,11 +53,40 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("UPDATE products SET total_stock = ? WHERE id = ?");
-                $stmt->execute([$data['stock'], $data['id']]);
+                if (isset($data['stock'])) {
+                    // Update only stock
+                    $stmt = $db->prepare("UPDATE products SET total_stock = ? WHERE id = ?");
+                    $stmt->execute([$data['stock'], $data['id']]);
+                } else {
+                    // Update all fields
+                    $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price = ?, total_stock = ? WHERE id = ?");
+                    $stmt->execute([
+                        $data['name'], 
+                        $data['description'] ?? '', 
+                        $data['price'], 
+                        $data['total_stock'], 
+                        $data['id']
+                    ]);
+                }
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
+            }
+            break;
+            
+        case 'DELETE':
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!$data || !isset($data['id'])) {
+                echo json_encode(['error' => 'Invalid data or missing ID']);
+                break;
+            }
+            
+            try {
+                $stmt = $db->prepare("DELETE FROM products WHERE id = ?");
+                $stmt->execute([$data['id']]);
+                echo json_encode(['success' => true]);
+            } catch(PDOException $e) {
+                echo json_encode(['error' => 'Delete failed: ' . $e->getMessage()]);
             }
             break;
             

@@ -1,5 +1,5 @@
 <?php
-// api/tickets.php
+// api/pilots.php
 require_once '../config/database.php';
 
 header('Content-Type: application/json');
@@ -16,15 +16,9 @@ try {
     switch($method) {
         case 'GET':
             try {
-                $stmt = $db->query("
-                    SELECT t.*, p.name as plane_name, pi.name as pilot_name 
-                    FROM tickets t 
-                    LEFT JOIN planes p ON t.plane_id = p.id 
-                    LEFT JOIN pilots pi ON t.pilot_id = pi.id
-                    ORDER BY t.created_at DESC
-                ");
-                $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($tickets);
+                $stmt = $db->query("SELECT * FROM pilots ORDER BY name");
+                $pilots = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode($pilots);
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Database query failed: ' . $e->getMessage()]);
             }
@@ -38,12 +32,12 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("INSERT INTO tickets (plane_id, pilot_id, ticket_number, description) VALUES (?, ?, ?, ?)");
+                $stmt = $db->prepare("INSERT INTO pilots (name, license_number, email, phone) VALUES (?, ?, ?, ?)");
                 $stmt->execute([
-                    $data['plane_id'], 
-                    $data['pilot_id'], 
-                    $data['ticket_number'], 
-                    $data['description'] ?? ''
+                    $data['name'], 
+                    $data['license_number'], 
+                    $data['email'] ?? '', 
+                    $data['phone'] ?? ''
                 ]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
@@ -59,12 +53,12 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("UPDATE tickets SET plane_id = ?, pilot_id = ?, ticket_number = ?, description = ? WHERE id = ?");
+                $stmt = $db->prepare("UPDATE pilots SET name = ?, license_number = ?, email = ?, phone = ? WHERE id = ?");
                 $stmt->execute([
-                    $data['plane_id'], 
-                    $data['pilot_id'], 
-                    $data['ticket_number'], 
-                    $data['description'] ?? '', 
+                    $data['name'], 
+                    $data['license_number'], 
+                    $data['email'] ?? '', 
+                    $data['phone'] ?? '', 
                     $data['id']
                 ]);
                 echo json_encode(['success' => true]);
@@ -81,7 +75,7 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("DELETE FROM tickets WHERE id = ?");
+                $stmt = $db->prepare("DELETE FROM pilots WHERE id = ?");
                 $stmt->execute([$data['id']]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {

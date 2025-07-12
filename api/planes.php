@@ -40,6 +40,38 @@ try {
             }
             break;
             
+        case 'PUT':
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!$data) {
+                echo json_encode(['error' => 'Invalid JSON data']);
+                break;
+            }
+            
+            try {
+                $stmt = $db->prepare("UPDATE planes SET name = ?, description = ? WHERE id = ?");
+                $stmt->execute([$data['name'], $data['description'] ?? '', $data['id']]);
+                echo json_encode(['success' => true]);
+            } catch(PDOException $e) {
+                echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
+            }
+            break;
+            
+        case 'DELETE':
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!$data || !isset($data['id'])) {
+                echo json_encode(['error' => 'Invalid data or missing ID']);
+                break;
+            }
+            
+            try {
+                $stmt = $db->prepare("DELETE FROM planes WHERE id = ?");
+                $stmt->execute([$data['id']]);
+                echo json_encode(['success' => true]);
+            } catch(PDOException $e) {
+                echo json_encode(['error' => 'Delete failed: ' . $e->getMessage()]);
+            }
+            break;
+            
         default:
             echo json_encode(['error' => 'Method not allowed']);
             break;
