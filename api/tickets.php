@@ -17,9 +17,19 @@ try {
         case 'GET':
             try {
                 $stmt = $db->query("
-                    SELECT t.*, p.name as plane_name, pi.name as pilot_name 
-                    FROM tickets t 
-                    LEFT JOIN planes p ON t.plane_id = p.id 
+                    SELECT
+                        t.*,
+                        p.name as plane_name,
+                        pi.name as pilot_name,
+                        COALESCE(
+                            (SELECT SUM(ti.quantity_used * pr.price)
+                             FROM ticket_items ti
+                             LEFT JOIN products pr ON ti.product_id = pr.id
+                             WHERE ti.ticket_id = t.id),
+                            0
+                        ) as total_cost
+                    FROM tickets t
+                    LEFT JOIN planes p ON t.plane_id = p.id
                     LEFT JOIN pilots pi ON t.pilot_id = pi.id
                     ORDER BY t.created_at DESC
                 ");

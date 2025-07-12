@@ -247,6 +247,16 @@ tr:hover {
     background: #218838;
 }
 
+.item-preview {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    color: #1565c0;
+    font-weight: 500;
+}
+
 .ticket-items-list {
     background: white;
     padding: 15px;
@@ -265,20 +275,51 @@ tr:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 15px;
     margin-bottom: 8px;
     background: #f8f9fa;
     border-radius: 4px;
     border: 1px solid #e9ecef;
 }
 
-.ticket-item span {
-    font-weight: 500;
+.ticket-item .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ticket-item .item-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+.ticket-item .item-details {
+    font-size: 14px;
+    color: #6c757d;
 }
 
 .ticket-item button {
     padding: 5px 10px;
     font-size: 12px;
+}
+
+/* Cost display styling */
+.cost-cell {
+    font-weight: 600;
+    color: #28a745;
+    text-align: right;
+}
+
+.total-cost {
+    margin-top: 15px;
+    padding: 15px;
+    background: #e8f5e8;
+    border: 2px solid #28a745;
+    border-radius: 5px;
+    text-align: right;
+    font-size: 18px;
+    color: #155724;
+    font-weight: bold;
 }
 
 #ticketDetails {
@@ -311,8 +352,18 @@ tr:hover {
         gap: 10px;
     }
 
+    .ticket-item .item-info {
+        width: 100%;
+    }
+
     .ticket-item button {
         align-self: flex-end;
+        width: 100%;
+    }
+
+    .total-cost {
+        text-align: center;
+        font-size: 16px;
     }
 }
 

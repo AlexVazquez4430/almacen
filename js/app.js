@@ -357,12 +357,14 @@ class WarehouseApp {
             tickets.forEach(ticket => {
                 const row = tbody.insertRow();
                 const date = new Date(ticket.created_at).toLocaleDateString();
+                const totalCost = parseFloat(ticket.total_cost || 0);
                 row.innerHTML = `
                     <td>${ticket.ticket_number}</td>
                     <td>${ticket.plane_name || 'N/A'}</td>
                     <td>${ticket.pilot_name || 'N/A'}</td>
                     <td>${ticket.description || ''}</td>
                     <td>${date}</td>
+                    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
                         <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
@@ -698,15 +700,21 @@ class WarehouseApp {
                 <p><strong>Ticket:</strong> ${ticketDetails.ticket_number} - <strong>Plane:</strong> ${ticketDetails.plane_name}</p>
                 <div class="add-item-form">
                     <h5>Add Item</h5>
-                    <select id="itemProduct">
+                    <select id="itemProduct" onchange="app.updateItemPreview()">
                         <option value="">Select Product</option>
                     </select>
-                    <input type="number" id="itemQuantity" placeholder="Quantity" min="1">
+                    <input type="number" id="itemQuantity" placeholder="Quantity" min="1" oninput="app.updateItemPreview()">
+                    <div id="itemPreview" class="item-preview" style="display: none;">
+                        <span>Estimated cost: $<span id="previewCost">0.00</span></span>
+                    </div>
                     <button onclick="app.addTicketItem(${ticketId})">Add Item</button>
                 </div>
                 <div class="ticket-items-list">
                     <h5>Current Items</h5>
                     <div id="currentItemsList"></div>
+                    <div id="totalCost" class="total-cost" style="display: none;">
+                        <strong>Total Cost: $<span id="totalAmount">0.00</span></strong>
+                    </div>
                 </div>
             `;
 
@@ -716,8 +724,9 @@ class WarehouseApp {
                 console.log('Available products:', ticketDetails.available_products);
                 ticketDetails.available_products.forEach(product => {
                     const option = document.createElement('option');
-                    option.value = product.product_id; // Use product_id from plane_stocks
-                    option.textContent = `${product.product_name} (Available: ${product.current_stock})`;
+                    option.value = product.product_id;
+                    option.setAttribute('data-price', product.price || 0);
+                    option.textContent = `${product.product_name} - $${parseFloat(product.price || 0).toFixed(2)} (Available: ${product.current_stock})`;
                     productSelect.appendChild(option);
                 });
             } else {
@@ -725,28 +734,66 @@ class WarehouseApp {
                 productSelect.innerHTML = '<option value="">No products available in this plane</option>';
             }
 
-            // Show current items
+            // Show current items and calculate total
             const currentItemsList = document.getElementById('currentItemsList');
+            const totalCostDiv = document.getElementById('totalCost');
+            const totalAmountSpan = document.getElementById('totalAmount');
+            let totalCost = 0;
+
             if (ticketItems && Array.isArray(ticketItems) && ticketItems.length > 0) {
                 console.log('Displaying ticket items:', ticketItems);
                 ticketItems.forEach(item => {
+                    const itemPrice = parseFloat(item.price || 0);
+                    const itemQuantity = parseInt(item.quantity_used || 0);
+                    const itemTotal = itemPrice * itemQuantity;
+                    totalCost += itemTotal;
+
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'ticket-item';
                     itemDiv.innerHTML = `
-                        <span>${item.product_name} - Quantity: ${item.quantity_used}</span>
+                        <div class="item-info">
+                            <span class="item-name">${item.product_name}</span>
+                            <span class="item-details">Qty: ${itemQuantity} × $${itemPrice.toFixed(2)} = $${itemTotal.toFixed(2)}</span>
+                        </div>
                         <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
                     `;
                     currentItemsList.appendChild(itemDiv);
                 });
+
+                // Show total cost
+                totalAmountSpan.textContent = totalCost.toFixed(2);
+                totalCostDiv.style.display = 'block';
             } else {
                 console.log('No items found for this ticket');
                 currentItemsList.innerHTML = '<p>No items added to this ticket yet.</p>';
+                totalCostDiv.style.display = 'none';
             }
 
             ticketDetailsDiv.style.display = 'block';
         } catch (error) {
             console.error('Error managing ticket items:', error);
             alert('Error loading ticket items: ' + error.message);
+        }
+    }
+
+    updateItemPreview() {
+        const productSelect = document.getElementById('itemProduct');
+        const quantityInput = document.getElementById('itemQuantity');
+        const previewDiv = document.getElementById('itemPreview');
+        const previewCostSpan = document.getElementById('previewCost');
+
+        if (productSelect && quantityInput && previewDiv && previewCostSpan) {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const price = parseFloat(selectedOption.getAttribute('data-price') || 0);
+            const quantity = parseInt(quantityInput.value || 0);
+
+            if (productSelect.value && quantity > 0) {
+                const totalCost = price * quantity;
+                previewCostSpan.textContent = totalCost.toFixed(2);
+                previewDiv.style.display = 'block';
+            } else {
+                previewDiv.style.display = 'none';
+            }
         }
     }
 

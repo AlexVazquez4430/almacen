@@ -40,6 +40,7 @@ try {
                 ps.product_id,
                 ps.current_stock,
                 p.name as product_name,
+                p.price,
                 ppm.minimum_quantity
             FROM plane_stocks ps
             LEFT JOIN products p ON ps.product_id = p.id

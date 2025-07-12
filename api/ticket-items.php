@@ -23,7 +23,7 @@ try {
             $ticketId = $_GET['ticket_id'];
             try {
                 $stmt = $db->prepare("
-                    SELECT ti.*, p.name as product_name
+                    SELECT ti.*, p.name as product_name, p.price
                     FROM ticket_items ti
                     LEFT JOIN products p ON ti.product_id = p.id
                     WHERE ti.ticket_id = ?

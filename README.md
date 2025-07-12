@@ -37,6 +37,13 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Delete**: Remove pilots from the system
 - ✅ **Simplified Structure**: Only requires pilot name (as requested)
 
+### 5. Pricing and Cost Management (NEW)
+- ✅ **Product Pricing**: Each product has a configurable price
+- ✅ **Ticket Item Costs**: View individual item costs (quantity × price)
+- ✅ **Total Cost Calculation**: Automatic calculation of total ticket cost
+- ✅ **Cost Preview**: Real-time cost preview when adding items
+- ✅ **Ticket Cost Display**: Total cost shown in tickets table
+
 ## Database Schema Changes (SQLite)
 
 ### New Table: `pilots`
@@ -178,7 +185,12 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 3. **Pilots**: Maintain simple pilot database with names only
 4. **Tickets**: Create work orders with plane and pilot assignments
 5. **Stock Management**: Transfer inventory between warehouse and planes
-6. **Ticket Items**: Manage items associated with specific tickets
+6. **Ticket Items**: Manage items associated with specific tickets with cost tracking
+7. **Cost Management**:
+   - View individual item costs (quantity × unit price)
+   - See real-time cost preview when adding items
+   - Track total ticket costs in the tickets table
+   - Monitor product pricing across all transactions
 
 ## Troubleshooting
 
