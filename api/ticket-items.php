@@ -1,11 +1,15 @@
 <?php
 // api/ticket-items.php
 require_once '../config/database.php';
+require_once '../config/auth_check.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
+
+// Check authentication for all requests
+checkAuthentication();
 
 try {
     $database = new Database();

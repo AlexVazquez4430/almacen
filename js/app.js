@@ -8,9 +8,43 @@ class WarehouseApp {
         this.init();
     }
 
-    init() {
+    async init() {
+        // Check authentication first
+        const isAuthenticated = await this.checkAuthentication();
+        if (!isAuthenticated) {
+            window.location.href = 'login.html';
+            return;
+        }
+
         this.bindEvents();
         this.loadData();
+    }
+
+    async checkAuthentication() {
+        try {
+            const response = await fetch('api/auth.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'check'
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.logged_in) {
+                // Update user info in header
+                document.getElementById('currentUser').textContent = result.username;
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error('Authentication check error:', error);
+            return false;
+        }
     }
 
     bindEvents() {
@@ -866,6 +900,34 @@ class WarehouseApp {
 // Global function for navigation
 function showSection(section) {
     app.showSection(section);
+}
+
+// Global logout function
+async function logout() {
+    if (confirm('¿Está seguro de que desea cerrar sesión?')) {
+        try {
+            const response = await fetch('api/auth.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'logout'
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = 'login.html';
+            } else {
+                alert('Error al cerrar sesión');
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('Error de conexión al cerrar sesión');
+        }
+    }
 }
 
 // Initialize the app

@@ -1,6 +1,14 @@
 -- Database Schema for Warehouse Management System (SQLite)
 -- This file is for reference - the database.php file will automatically create these tables
 
+-- Create users table for authentication
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create pilots table (simplified - only name field)
 CREATE TABLE IF NOT EXISTS pilots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,6 +21,10 @@ CREATE TABLE IF NOT EXISTS pilots (
 
 -- Update tickets table to include pilot_id
 -- ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
+
+-- Default administrator user (automatically created by database.php)
+-- Username: administrador
+-- Password: IngresoControl$Almacen?
 
 -- Sample data for pilots (will be automatically inserted by database.php)
 -- INSERT INTO pilots (name) VALUES

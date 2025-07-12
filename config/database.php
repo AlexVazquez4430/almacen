@@ -48,6 +48,16 @@ class Database {
                 )
             ");
 
+            // Users table for authentication
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ");
+
             // Product minimum requirements per plane
             $this->db->exec("
                 CREATE TABLE IF NOT EXISTS plane_product_minimums (
@@ -135,6 +145,16 @@ class Database {
                     ('Ana Rodríguez'),
                     ('Luis Martínez')
                 ");
+            }
+
+            // Insert default administrator user if table is empty
+            $stmt = $this->db->query("SELECT COUNT(*) FROM users");
+            $userCount = $stmt->fetchColumn();
+
+            if ($userCount == 0) {
+                $hashedPassword = password_hash('IngresoControl$Almacen?', PASSWORD_DEFAULT);
+                $stmt = $this->db->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+                $stmt->execute(['administrador', $hashedPassword]);
             }
 
         } catch(PDOException $e) {

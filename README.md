@@ -9,7 +9,16 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 
 ## New Features Implemented
 
-### 1. Products CRUD with Pricing
+### 1. Authentication System (NEW)
+- ✅ **Login System**: Secure login with username and password
+- ✅ **Session Management**: Persistent login sessions
+- ✅ **Default Admin User**: Pre-configured administrator account (admin/admin)
+- ✅ **Protected APIs**: All API endpoints require authentication
+- ✅ **Auto-redirect**: Automatic redirection to login if not authenticated
+- ✅ **Logout Functionality**: Secure logout with session cleanup
+- ✅ **Password Security**: Passwords stored securely using bcrypt hashing
+
+### 2. Products CRUD with Pricing
 - ✅ **Create**: Add new products with name, description, price, and initial stock
 - ✅ **Read**: View all products in a table format
 - ✅ **Update**: Edit product details and update stock levels
@@ -46,6 +55,27 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 
 ## Database Schema Changes (SQLite)
 
+### Users Table
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Default Administrator Account:**
+- **Username:** `administrador`
+- **Password:** `IngresoControl$Almacen?`
+- **Auto-created:** Yes (created automatically on first run)
+
+### Authentication System
+- **Session-based:** Uses PHP sessions for authentication
+- **Password Hashing:** Passwords are securely hashed using PHP's `password_hash()`
+- **Protected APIs:** All API endpoints require valid session
+- **Auto-redirect:** Unauthenticated users redirected to login page
+
 ### New Table: `pilots`
 ```sql
 CREATE TABLE pilots (
@@ -75,6 +105,10 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - The `config/database.php` file automatically creates all required tables
 - Sample pilot data is automatically inserted on first run
 - No manual database setup required
+
+### Default Admin User (Auto-created)
+- **Username**: admin
+- **Password**: admin (change immediately after first login)
 
 ### Sample Pilots (Auto-created)
 - Juan Pérez
@@ -138,9 +172,18 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 
 ### Quick Start
 1. **Upload Files**: Upload all files to your web server
-2. **Access Application**: Open `index.html` in your browser
-3. **Automatic Setup**: Database and tables are created automatically
-4. **Start Using**: Begin adding products, planes, pilots, and tickets
+2. **Access Login**: Open `login.html` in your browser (or `index.html` will redirect)
+3. **Login**: Use default credentials:
+   - **Username:** `administrador`
+   - **Password:** `IngresoControl$Almacen?`
+4. **Automatic Setup**: Database and tables are created automatically
+5. **Start Using**: Begin adding products, planes, pilots, and tickets
+
+### Authentication & Security
+- **Secure Login**: All access requires authentication
+- **Session Management**: Login sessions persist until logout
+- **Protected APIs**: All data operations require valid login
+- **Default Admin**: Administrator account created automatically
 
 ### No Database Configuration Required
 - SQLite database is automatically created

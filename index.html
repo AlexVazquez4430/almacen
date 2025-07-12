@@ -10,7 +10,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>Sistema de Almacén</h1>
+            <div class="header-content">
+                <h1>Sistema de Almacén</h1>
+                <div class="user-info">
+                    <span id="welcomeMessage">Bienvenido, <span id="currentUser">Usuario</span></span>
+                    <button id="logoutBtn" class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+                </div>
+            </div>
             <nav>
                 <button class="nav-btn active" onclick="showSection('warehouse')">Alamacén</button>
                 <button class="nav-btn" onclick="showSection('planes')">Aviones</button>
