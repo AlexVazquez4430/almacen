@@ -127,7 +127,10 @@
             </div>
 
             <div id="ticketDetails" class="ticket-details" style="display: none;">
-                <h3>Detalles del Ticket</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Detalles del Ticket</h3>
+                    <button onclick="document.getElementById('ticketDetails').style.display='none'" class="btn-small btn-secondary">Cerrar</button>
+                </div>
                 <div id="ticketItemsContainer"></div>
             </div>
         </section>

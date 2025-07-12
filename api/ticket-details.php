@@ -36,7 +36,11 @@ try {
         
         // Get available products in this plane
         $stmt = $db->prepare("
-            SELECT ps.*, p.name as product_name, ppm.minimum_quantity
+            SELECT
+                ps.product_id,
+                ps.current_stock,
+                p.name as product_name,
+                ppm.minimum_quantity
             FROM plane_stocks ps
             LEFT JOIN products p ON ps.product_id = p.id
             LEFT JOIN plane_product_minimums ppm ON ps.plane_id = ppm.plane_id AND ps.product_id = ppm.product_id
