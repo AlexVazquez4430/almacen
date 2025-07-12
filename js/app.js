@@ -158,7 +158,7 @@ class WarehouseApp {
                     <td>${product.total_stock}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editProduct(${product.id})">Editar</button>
-                        <button class="btn-small btn-success" onclick="app.updateStock(${product.id})">Update Stock</button>
+                        <button class="btn-small btn-success" onclick="app.updateStock(${product.id})">Actualizar Stock</button>
                         <button class="btn-small btn-danger" onclick="app.deleteProduct(${product.id})">Eliminar</button>
                     </td>
                 `;
