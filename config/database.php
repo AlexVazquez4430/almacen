@@ -23,6 +23,7 @@ class Database {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name VARCHAR(100) NOT NULL,
                     description TEXT,
+                    price DECIMAL(10,2) DEFAULT 0.00,
                     total_stock INTEGER DEFAULT 0,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
@@ -34,6 +35,15 @@ class Database {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name VARCHAR(100) NOT NULL,
                     description TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ");
+
+            // Pilots table
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS pilots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(255) NOT NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ");
@@ -58,21 +68,24 @@ class Database {
                     plane_id INTEGER NOT NULL,
                     product_id INTEGER NOT NULL,
                     current_stock INTEGER DEFAULT 0,
+                    minimum_quantity INTEGER DEFAULT 0,
                     FOREIGN KEY (plane_id) REFERENCES planes(id),
                     FOREIGN KEY (product_id) REFERENCES products(id),
                     UNIQUE(plane_id, product_id)
                 )
             ");
 
-            // Tickets
+            // Tickets with pilot assignment
             $this->db->exec("
                 CREATE TABLE IF NOT EXISTS tickets (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     plane_id INTEGER NOT NULL,
+                    pilot_id INTEGER,
                     ticket_number VARCHAR(50) NOT NULL,
                     description TEXT,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (plane_id) REFERENCES planes(id)
+                    FOREIGN KEY (plane_id) REFERENCES planes(id),
+                    FOREIGN KEY (pilot_id) REFERENCES pilots(id)
                 )
             ");
 
@@ -87,7 +100,43 @@ class Database {
                     FOREIGN KEY (product_id) REFERENCES products(id)
                 )
             ");
-            
+
+            // Add price column to existing products table if it doesn't exist
+            try {
+                $this->db->exec("ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00");
+            } catch(PDOException $e) {
+                // Column might already exist, ignore error
+            }
+
+            // Add pilot_id column to existing tickets table if it doesn't exist
+            try {
+                $this->db->exec("ALTER TABLE tickets ADD COLUMN pilot_id INTEGER");
+            } catch(PDOException $e) {
+                // Column might already exist, ignore error
+            }
+
+            // Add minimum_quantity column to plane_stocks if it doesn't exist
+            try {
+                $this->db->exec("ALTER TABLE plane_stocks ADD COLUMN minimum_quantity INTEGER DEFAULT 0");
+            } catch(PDOException $e) {
+                // Column might already exist, ignore error
+            }
+
+            // Insert sample pilots if table is empty
+            $stmt = $this->db->query("SELECT COUNT(*) FROM pilots");
+            $count = $stmt->fetchColumn();
+
+            if ($count == 0) {
+                $this->db->exec("
+                    INSERT INTO pilots (name) VALUES
+                    ('Juan Pérez'),
+                    ('María García'),
+                    ('Carlos López'),
+                    ('Ana Rodríguez'),
+                    ('Luis Martínez')
+                ");
+            }
+
         } catch(PDOException $e) {
             die("Database initialization failed: " . $e->getMessage());
         }

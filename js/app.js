@@ -463,14 +463,16 @@ class WarehouseApp {
 
     // PILOTS CRUD
     async savePilot() {
-        const name = document.getElementById('pilotName').value;
-        const license_number = document.getElementById('pilotLicense').value;
-        const email = document.getElementById('pilotEmail').value;
-        const phone = document.getElementById('pilotPhone').value;
+        const name = document.getElementById('pilotName').value.trim();
         const id = document.getElementById('pilotId').value;
 
-        const data = { name, license_number, email, phone };
-        
+        if (!name) {
+            alert('Pilot name is required');
+            return;
+        }
+
+        const data = { name };
+
         try {
             let response;
             if (id) {
@@ -490,12 +492,16 @@ class WarehouseApp {
                 });
             }
 
-            if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
                 this.cancelPilotEdit();
                 this.loadPilots();
+            } else {
+                alert('Error: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error saving pilot:', error);
+            alert('Error saving pilot: ' + error.message);
         }
     }
 
@@ -503,7 +509,12 @@ class WarehouseApp {
         try {
             const response = await fetch('api/pilots.php');
             const pilots = await response.json();
-            
+
+            if (pilots.error) {
+                console.error('Error loading pilots:', pilots.error);
+                return;
+            }
+
             const tbody = document.querySelector('#pilotsTable tbody');
             tbody.innerHTML = '';
 
@@ -511,9 +522,6 @@ class WarehouseApp {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${pilot.name}</td>
-                    <td>${pilot.license_number}</td>
-                    <td>${pilot.email || ''}</td>
-                    <td>${pilot.phone || ''}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editPilot(${pilot.id})">Editar</button>
                         <button class="btn-small btn-danger" onclick="app.deletePilot(${pilot.id})">Eliminar</button>
@@ -533,16 +541,16 @@ class WarehouseApp {
                 if (pilot) {
                     document.getElementById('pilotId').value = pilot.id;
                     document.getElementById('pilotName').value = pilot.name;
-                    document.getElementById('pilotLicense').value = pilot.license_number;
-                    document.getElementById('pilotEmail').value = pilot.email || '';
-                    document.getElementById('pilotPhone').value = pilot.phone || '';
-                    
+
                     document.getElementById('pilotFormTitle').textContent = 'Editar Piloto';
                     document.getElementById('pilotSubmitBtn').textContent = 'Actualizar Piloto';
                     document.getElementById('pilotCancelBtn').style.display = 'inline-block';
-                    
+
                     this.editingPilot = id;
                 }
+            })
+            .catch(error => {
+                console.error('Error loading pilot for edit:', error);
             });
     }
 
@@ -564,11 +572,15 @@ class WarehouseApp {
                     body: JSON.stringify({ id })
                 });
 
-                if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
                     this.loadPilots();
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error deleting pilot:', error);
+                alert('Error deleting pilot: ' + error.message);
             }
         }
     }

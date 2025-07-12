@@ -135,15 +135,12 @@
         <!-- Pilots Section -->
         <section id="pilots" class="section">
             <h2>Administración de Pilotos</h2>
-            
+
             <div class="form-container">
                 <h3 id="pilotFormTitle">Añadir Piloto</h3>
                 <form id="pilotForm">
                     <input type="hidden" id="pilotId">
                     <input type="text" id="pilotName" placeholder="Pilot Name" required>
-                    <input type="text" id="pilotLicense" placeholder="License Number" required>
-                    <input type="email" id="pilotEmail" placeholder="Email">
-                    <input type="tel" id="pilotPhone" placeholder="Phone">
                     <button type="submit" id="pilotSubmitBtn">Añadir Piloto</button>
                     <button type="button" id="pilotCancelBtn" onclick="app.cancelPilotEdit()" style="display: none;">Cancelar</button>
                 </form>
@@ -155,9 +152,6 @@
                     <thead>
                         <tr>
                             <th>Nombre</th>
-                            <th>Licencia</th>
-                            <th>Email</th>
-                            <th>Teléfono</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>

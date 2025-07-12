@@ -1,28 +1,26 @@
--- Database Schema for Warehouse Management System
--- Run these SQL commands to create the required tables
+-- Database Schema for Warehouse Management System (SQLite)
+-- This file is for reference - the database.php file will automatically create these tables
 
--- Create pilots table
+-- Create pilots table (simplified - only name field)
 CREATE TABLE IF NOT EXISTS pilots (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    license_number VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Update products table to include price
-ALTER TABLE products ADD COLUMN IF NOT EXISTS price DECIMAL(10,2) NOT NULL DEFAULT 0.00;
+-- ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00;
 
 -- Update tickets table to include pilot_id
-ALTER TABLE tickets ADD COLUMN IF NOT EXISTS pilot_id INT;
-ALTER TABLE tickets ADD FOREIGN KEY (pilot_id) REFERENCES pilots(id) ON DELETE SET NULL;
+-- ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 
--- Sample data for pilots
-INSERT INTO pilots (name, license_number, email, phone) VALUES
-('Juan Pérez', 'PIL001', 'juan.perez@airline.com', '+1234567890'),
-('María García', 'PIL002', 'maria.garcia@airline.com', '+1234567891'),
-('Carlos López', 'PIL003', 'carlos.lopez@airline.com', '+1234567892');
+-- Sample data for pilots (will be automatically inserted by database.php)
+-- INSERT INTO pilots (name) VALUES
+-- ('Juan Pérez'),
+-- ('María García'),
+-- ('Carlos López'),
+-- ('Ana Rodríguez'),
+-- ('Luis Martínez');
 
--- Update existing products with sample prices (if any exist)
-UPDATE products SET price = 10.00 WHERE price = 0.00;
+-- Note: The database.php file will automatically handle table creation and modifications
+-- You don't need to run these commands manually as they are handled by the application

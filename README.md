@@ -5,7 +5,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - **Products** (with variable pricing)
 - **Planes** 
 - **Tickets** (with pilot assignment)
-- **Pilots** (new entity)
+- **Pilots** (simplified - name only)
 
 ## New Features Implemented
 
@@ -30,36 +30,51 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Delete**: Remove tickets from the system
 - ✅ **Pilot Field**: Added pilot assignment to each ticket
 
-### 4. Pilots CRUD (New Entity)
-- ✅ **Create**: Add new pilots with name, license number, email, and phone
+### 4. Pilots CRUD (New Entity - Simplified)
+- ✅ **Create**: Add new pilots with name only
 - ✅ **Read**: View all pilots in a table format
-- ✅ **Update**: Edit pilot information
+- ✅ **Update**: Edit pilot name
 - ✅ **Delete**: Remove pilots from the system
+- ✅ **Simplified Structure**: Only requires pilot name (as requested)
 
-## Database Schema Changes
+## Database Schema Changes (SQLite)
 
 ### New Table: `pilots`
 ```sql
 CREATE TABLE pilots (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    license_number VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 ### Modified Table: `products`
 ```sql
-ALTER TABLE products ADD COLUMN price DECIMAL(10,2) NOT NULL DEFAULT 0.00;
+-- Price column added automatically by database.php
+ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00;
 ```
 
 ### Modified Table: `tickets`
 ```sql
-ALTER TABLE tickets ADD COLUMN pilot_id INT;
-ALTER TABLE tickets ADD FOREIGN KEY (pilot_id) REFERENCES pilots(id) ON DELETE SET NULL;
+-- Pilot ID column added automatically by database.php
+ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 ```
+
+## Database Setup
+
+**Important**: This system uses **SQLite** database, not MySQL. The database file (`warehouse.db`) is automatically created and managed by the application.
+
+### Automatic Setup
+- The `config/database.php` file automatically creates all required tables
+- Sample pilot data is automatically inserted on first run
+- No manual database setup required
+
+### Sample Pilots (Auto-created)
+- Juan Pérez
+- María García
+- Carlos López
+- Ana Rodríguez
+- Luis Martínez
 
 ## API Endpoints
 
@@ -83,11 +98,16 @@ ALTER TABLE tickets ADD FOREIGN KEY (pilot_id) REFERENCES pilots(id) ON DELETE S
 
 ### Pilots API (`api/pilots.php`) - NEW
 - `GET /api/pilots.php` - Get all pilots
-- `POST /api/pilots.php` - Create new pilot
-- `PUT /api/pilots.php` - Update pilot
+- `POST /api/pilots.php` - Create new pilot (name only)
+- `PUT /api/pilots.php` - Update pilot name
 - `DELETE /api/pilots.php` - Delete pilot
 
 ## User Interface Features
+
+### Simplified Pilot Management
+- **Name Only**: Pilots only require a name field (as requested)
+- **Simple Form**: Clean, minimal form for adding/editing pilots
+- **Easy Management**: Quick add, edit, and delete operations
 
 ### Form Enhancements
 - Edit mode for all entities with form state management
@@ -109,42 +129,67 @@ ALTER TABLE tickets ADD FOREIGN KEY (pilot_id) REFERENCES pilots(id) ON DELETE S
 
 ## Installation & Setup
 
-1. **Database Setup**: Run the SQL commands in `database_schema.sql` to create/modify tables
-2. **Sample Data**: The schema file includes sample pilot data
-3. **File Structure**: All files are properly organized in their respective directories
+### Quick Start
+1. **Upload Files**: Upload all files to your web server
+2. **Access Application**: Open `index.html` in your browser
+3. **Automatic Setup**: Database and tables are created automatically
+4. **Start Using**: Begin adding products, planes, pilots, and tickets
+
+### No Database Configuration Required
+- SQLite database is automatically created
+- All tables are automatically set up
+- Sample data is automatically inserted
+- No manual SQL commands needed
 
 ## File Structure
 ```
 ├── api/
-│   ├── pilots.php (NEW)
-│   ├── products.php (UPDATED)
-│   ├── planes.php (UPDATED)
-│   ├── tickets.php (UPDATED)
+│   ├── pilots.php (NEW - Simplified)
+│   ├── products.php (UPDATED - with price)
+│   ├── planes.php (UPDATED - full CRUD)
+│   ├── tickets.php (UPDATED - with pilots)
 │   └── ... (other existing files)
+├── config/
+│   └── database.php (UPDATED - auto-setup)
 ├── css/
 │   └── style.css (UPDATED)
 ├── js/
 │   └── app.js (COMPLETELY REWRITTEN)
 ├── index.html (UPDATED)
-└── database_schema.sql (NEW)
+├── database_schema.sql (REFERENCE ONLY)
+└── README.md (THIS FILE)
 ```
 
 ## Key Improvements
 
-1. **Complete CRUD Operations**: All entities now support full CRUD functionality
-2. **Better UX**: Edit forms with proper state management and cancel options
-3. **Data Relationships**: Proper foreign key relationships between tickets, planes, and pilots
-4. **Responsive Design**: Improved mobile compatibility
-5. **Error Handling**: Better error handling and user feedback
-6. **Code Organization**: Cleaner, more maintainable JavaScript code
+1. **Simplified Pilots**: Only name field required (as requested)
+2. **Automatic Database Setup**: No manual configuration needed
+3. **Complete CRUD Operations**: All entities support full CRUD functionality
+4. **Better UX**: Edit forms with proper state management and cancel options
+5. **Data Relationships**: Proper relationships between tickets, planes, and pilots
+6. **Responsive Design**: Improved mobile compatibility
+7. **Error Handling**: Better error handling and user feedback
+8. **Code Organization**: Cleaner, more maintainable JavaScript code
 
 ## Usage
 
 1. **Products**: Add products with pricing, edit details, manage stock levels
 2. **Planes**: Manage aircraft fleet, assign stock to planes
-3. **Pilots**: Maintain pilot database with license information
+3. **Pilots**: Maintain simple pilot database with names only
 4. **Tickets**: Create work orders with plane and pilot assignments
 5. **Stock Management**: Transfer inventory between warehouse and planes
 6. **Ticket Items**: Manage items associated with specific tickets
 
-The system maintains all existing functionality while adding comprehensive CRUD operations and the new pilot management feature.
+## Troubleshooting
+
+### Pilots Not Working?
+- Ensure the web server has write permissions for the directory (SQLite needs to create the database file)
+- Check browser console for JavaScript errors
+- Verify that the `config/database.php` file is accessible
+
+### Database Issues?
+- The SQLite database file (`warehouse.db`) is created automatically
+- If issues persist, delete the `warehouse.db` file and refresh the page to recreate it
+- Ensure proper file permissions on the web server
+
+The system maintains all existing functionality while adding comprehensive CRUD operations and the simplified pilot management feature you requested.

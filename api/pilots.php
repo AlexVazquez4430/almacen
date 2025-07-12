@@ -26,20 +26,21 @@ try {
             
         case 'POST':
             $data = json_decode(file_get_contents('php://input'), true);
-            if (!$data) {
-                echo json_encode(['error' => 'Invalid JSON data']);
+            
+            if (!$data || !isset($data['name']) || empty(trim($data['name']))) {
+                echo json_encode(['error' => 'Pilot name is required']);
                 break;
             }
             
             try {
-                $stmt = $db->prepare("INSERT INTO pilots (name, license_number, email, phone) VALUES (?, ?, ?, ?)");
-                $stmt->execute([
-                    $data['name'], 
-                    $data['license_number'], 
-                    $data['email'] ?? '', 
-                    $data['phone'] ?? ''
-                ]);
-                echo json_encode(['success' => true]);
+                $stmt = $db->prepare("INSERT INTO pilots (name) VALUES (?)");
+                $result = $stmt->execute([trim($data['name'])]);
+                
+                if ($result) {
+                    echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
+                } else {
+                    echo json_encode(['error' => 'Insert failed']);
+                }
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Insert failed: ' . $e->getMessage()]);
             }
@@ -47,20 +48,14 @@ try {
             
         case 'PUT':
             $data = json_decode(file_get_contents('php://input'), true);
-            if (!$data) {
-                echo json_encode(['error' => 'Invalid JSON data']);
+            if (!$data || !isset($data['id']) || !isset($data['name']) || empty(trim($data['name']))) {
+                echo json_encode(['error' => 'Pilot ID and name are required']);
                 break;
             }
             
             try {
-                $stmt = $db->prepare("UPDATE pilots SET name = ?, license_number = ?, email = ?, phone = ? WHERE id = ?");
-                $stmt->execute([
-                    $data['name'], 
-                    $data['license_number'], 
-                    $data['email'] ?? '', 
-                    $data['phone'] ?? '', 
-                    $data['id']
-                ]);
+                $stmt = $db->prepare("UPDATE pilots SET name = ? WHERE id = ?");
+                $stmt->execute([trim($data['name']), $data['id']]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
@@ -70,7 +65,7 @@ try {
         case 'DELETE':
             $data = json_decode(file_get_contents('php://input'), true);
             if (!$data || !isset($data['id'])) {
-                echo json_encode(['error' => 'Invalid data or missing ID']);
+                echo json_encode(['error' => 'Pilot ID is required']);
                 break;
             }
             
