@@ -493,7 +493,7 @@ class WarehouseApp {
                 select.appendChild(option);
             });
         } catch (error) {
-            console.error('Error loading pilots for tickets:', error);
+            console.error('Error al cargar pilotos para los tickets:', error);
         }
     }
 
@@ -503,7 +503,7 @@ class WarehouseApp {
         const id = document.getElementById('pilotId').value;
 
         if (!name) {
-            alert('Pilot name is required');
+            alert('Se requiere el nombre del piloto');
             return;
         }
 
@@ -787,7 +787,7 @@ class WarehouseApp {
                     itemDiv.innerHTML = `
                         <div class="item-info">
                             <span class="item-name">${item.product_name}</span>
-                            <span class="item-details">Qty: ${itemQuantity} × $${itemPrice.toFixed(2)} = $${itemTotal.toFixed(2)}</span>
+                            <span class="item-details">Cantidad: ${itemQuantity} × $${itemPrice.toFixed(2)} = $${itemTotal.toFixed(2)}</span>
                         </div>
                         <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
                     `;
