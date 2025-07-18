@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Ticket Edit</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Ticket Edit Functionality</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Test API Connection</h3>
+        <button onclick="testAPI()">Test API</button>
+        <div id="api-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Test Edit Function</h3>
+        <input type="number" id="ticketIdInput" placeholder="Enter Ticket ID" value="1">
+        <button onclick="testEditFunction()">Test Edit Function</button>
+        <div id="edit-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 3: Mock Form Elements</h3>
+        <div id="mock-form">
+            <input type="hidden" id="ticketId">
+            <select id="ticketPlane">
+                <option value="">Select Plane</option>
+                <option value="1">Test Plane</option>
+            </select>
+            <input type="text" id="ticketNumber" placeholder="Ticket Number">
+            <input type="text" id="ticketDescription" placeholder="Description">
+            <div id="ticketPilots">
+                <input type="checkbox" id="pilot_1" value="1"> <label for="pilot_1">Test Pilot 1</label>
+                <input type="checkbox" id="pilot_2" value="2"> <label for="pilot_2">Test Pilot 2</label>
+            </div>
+            <div id="ticketDoctors">
+                <input type="checkbox" id="doctor_1" value="1"> <label for="doctor_1">Test Doctor 1</label>
+            </div>
+            <h3 id="ticketFormTitle">Crear Ticket</h3>
+            <button id="ticketSubmitBtn">Crear Ticket</button>
+            <button id="ticketCancelBtn" style="display: none;">Cancelar</button>
+            <form id="ticketForm"></form>
+        </div>
+    </div>
+
+    <script>
+        // Test API connection
+        async function testAPI() {
+            const results = document.getElementById('api-results');
+            results.innerHTML = 'Testing...';
+            
+            try {
+                // Test 1: Get all tickets
+                const response1 = await fetch('api/tickets.php');
+                const tickets = await response1.json();
+                
+                if (tickets && tickets.length > 0) {
+                    results.innerHTML = `<div class="success">✅ Found ${tickets.length} tickets</div>`;
+                    
+                    // Test 2: Get single ticket
+                    const firstTicketId = tickets[0].id;
+                    const response2 = await fetch(`api/tickets.php?id=${firstTicketId}`);
+                    const ticketData = await response2.json();
+                    
+                    results.innerHTML += `<div class="success">✅ Single ticket fetch: ${JSON.stringify(ticketData)}</div>`;
+                } else {
+                    results.innerHTML = '<div class="error">❌ No tickets found</div>';
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ API Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test the edit function directly
+        async function testEditFunction() {
+            const ticketId = document.getElementById('ticketIdInput').value;
+            const results = document.getElementById('edit-results');
+            results.innerHTML = 'Testing edit function...';
+            
+            try {
+                // Simulate the editTicket function
+                console.log('Fetching ticket ID:', ticketId);
+                const response = await fetch(`api/tickets.php?id=${ticketId}`);
+                const ticketData = await response.json();
+                
+                console.log('Received data:', ticketData);
+                
+                if (ticketData && ticketData.length > 0) {
+                    const ticket = ticketData[0];
+                    
+                    // Try to populate form elements
+                    document.getElementById('ticketId').value = ticket.id;
+                    document.getElementById('ticketPlane').value = ticket.plane_id;
+                    document.getElementById('ticketNumber').value = ticket.ticket_number;
+                    document.getElementById('ticketDescription').value = ticket.description || '';
+                    
+                    // Update UI
+                    document.getElementById('ticketFormTitle').textContent = 'Editar Ticket';
+                    document.getElementById('ticketSubmitBtn').textContent = 'Actualizar Ticket';
+                    document.getElementById('ticketCancelBtn').style.display = 'inline-block';
+                    
+                    results.innerHTML = `<div class="success">✅ Edit function worked! Loaded ticket: ${ticket.ticket_number}</div>`;
+                    results.innerHTML += `<div>Pilots: ${ticket.pilots ? ticket.pilots.length : 0}</div>`;
+                    results.innerHTML += `<div>Doctors: ${ticket.doctors ? ticket.doctors.length : 0}</div>`;
+                } else {
+                    results.innerHTML = '<div class="error">❌ No ticket data received</div>';
+                }
+            } catch (error) {
+                console.error('Edit test error:', error);
+                results.innerHTML = `<div class="error">❌ Edit Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Add console logging for debugging
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+    </script>
+</body>
+</html>

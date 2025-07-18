@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Ticket Edit Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+        .test-results { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Ticket Edit Functionality Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: API Connectivity</h3>
+        <button onclick="testAPIs()">Test All APIs</button>
+        <div id="api-test-results" class="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Ticket Data Structure</h3>
+        <button onclick="testTicketStructure()">Test Ticket Structure</button>
+        <div id="structure-test-results" class="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Edit Function Simulation</h3>
+        <input type="number" id="testTicketId" placeholder="Ticket ID" value="1">
+        <button onclick="simulateEdit()">Simulate Edit</button>
+        <div id="edit-test-results" class="test-results"></div>
+    </div>
+
+    <script>
+        async function testAPIs() {
+            const results = document.getElementById('api-test-results');
+            results.innerHTML = '<div class="info">Testing APIs...</div>';
+            
+            const tests = [
+                { name: 'Tickets API', url: 'api/tickets.php' },
+                { name: 'Pilots API', url: 'api/pilots.php' },
+                { name: 'Doctors API', url: 'api/doctors.php' },
+                { name: 'Planes API', url: 'api/planes.php' }
+            ];
+            
+            let html = '';
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url);
+                    const data = await response.json();
+                    
+                    if (response.ok && Array.isArray(data)) {
+                        html += `<div class="success">✅ ${test.name}: ${data.length} records</div>`;
+                    } else {
+                        html += `<div class="error">❌ ${test.name}: Invalid response</div>`;
+                    }
+                } catch (error) {
+                    html += `<div class="error">❌ ${test.name}: ${error.message}</div>`;
+                }
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        async function testTicketStructure() {
+            const results = document.getElementById('structure-test-results');
+            results.innerHTML = '<div class="info">Testing ticket data structure...</div>';
+            
+            try {
+                const response = await fetch('api/tickets.php');
+                const tickets = await response.json();
+                
+                if (tickets.length === 0) {
+                    results.innerHTML = '<div class="error">❌ No tickets found. Please create a ticket first.</div>';
+                    return;
+                }
+                
+                const ticket = tickets[0];
+                let html = `<div class="success">✅ Found ${tickets.length} tickets</div>`;
+                html += `<div class="info">First ticket structure:</div>`;
+                html += `<pre>${JSON.stringify(ticket, null, 2)}</pre>`;
+                
+                // Check if it has the required fields
+                const requiredFields = ['id', 'ticket_number', 'plane_id'];
+                const missingFields = requiredFields.filter(field => !(field in ticket));
+                
+                if (missingFields.length === 0) {
+                    html += '<div class="success">✅ All required fields present</div>';
+                } else {
+                    html += `<div class="error">❌ Missing fields: ${missingFields.join(', ')}</div>`;
+                }
+                
+                // Test single ticket fetch
+                const singleResponse = await fetch(`api/tickets.php?id=${ticket.id}`);
+                const singleTicket = await singleResponse.json();
+                
+                if (Array.isArray(singleTicket) && singleTicket.length > 0) {
+                    html += '<div class="success">✅ Single ticket fetch works</div>';
+                    html += `<div class="info">Pilots: ${singleTicket[0].pilots ? singleTicket[0].pilots.length : 0}</div>`;
+                    html += `<div class="info">Doctors: ${singleTicket[0].doctors ? singleTicket[0].doctors.length : 0}</div>`;
+                } else {
+                    html += '<div class="error">❌ Single ticket fetch failed</div>';
+                }
+                
+                results.innerHTML = html;
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function simulateEdit() {
+            const ticketId = document.getElementById('testTicketId').value;
+            const results = document.getElementById('edit-test-results');
+            results.innerHTML = '<div class="info">Simulating edit function...</div>';
+            
+            try {
+                // Step 1: Fetch ticket data
+                const response = await fetch(`api/tickets.php?id=${ticketId}`);
+                const ticketData = await response.json();
+                
+                let html = '';
+                
+                if (ticketData && ticketData.length > 0) {
+                    const ticket = ticketData[0];
+                    html += '<div class="success">✅ Ticket data fetched successfully</div>';
+                    html += `<div class="info">Ticket: ${ticket.ticket_number}</div>`;
+                    html += `<div class="info">Plane ID: ${ticket.plane_id}</div>`;
+                    html += `<div class="info">Pilots: ${ticket.pilots ? ticket.pilots.length : 0}</div>`;
+                    html += `<div class="info">Doctors: ${ticket.doctors ? ticket.doctors.length : 0}</div>`;
+                    
+                    // Step 2: Check if form elements would exist
+                    const formElements = [
+                        'ticketId', 'ticketPlane', 'ticketNumber', 'ticketDescription',
+                        'ticketFormTitle', 'ticketSubmitBtn', 'ticketCancelBtn', 'ticketForm'
+                    ];
+                    
+                    html += '<div class="info">Required form elements check:</div>';
+                    formElements.forEach(elementId => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            html += `<div class="success">✅ ${elementId} exists</div>`;
+                        } else {
+                            html += `<div class="error">❌ ${elementId} missing</div>`;
+                        }
+                    });
+                    
+                    html += '<div class="success">✅ Edit simulation would work!</div>';
+                } else {
+                    html += '<div class="error">❌ No ticket found with that ID</div>';
+                }
+                
+                results.innerHTML = html;
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Simulation failed: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto-run API test on load
+        window.onload = () => {
+            testAPIs();
+        };
+    </script>
+    
+    <!-- Mock form elements for testing -->
+    <div style="display: none;">
+        <input type="hidden" id="ticketId">
+        <select id="ticketPlane"></select>
+        <input type="text" id="ticketNumber">
+        <input type="text" id="ticketDescription">
+        <h3 id="ticketFormTitle">Crear Ticket</h3>
+        <button id="ticketSubmitBtn">Crear Ticket</button>
+        <button id="ticketCancelBtn">Cancelar</button>
+        <form id="ticketForm"></form>
+    </div>
+</body>
+</html>

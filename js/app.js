@@ -523,36 +523,7 @@ class WarehouseApp {
         }
     }
 
-    async loadTickets() {
-        try {
-            const response = await fetch('api/tickets.php');
-            const tickets = await response.json();
-            
-            const tbody = document.querySelector('#ticketsTable tbody');
-            tbody.innerHTML = '';
-
-            tickets.forEach(ticket => {
-                const row = tbody.insertRow();
-                const date = new Date(ticket.created_at).toLocaleDateString();
-                const totalCost = parseFloat(ticket.total_cost || 0);
-                row.innerHTML = `
-                    <td>${ticket.ticket_number}</td>
-                    <td>${ticket.plane_name || 'N/A'}</td>
-                    <td>${ticket.pilot_name || 'N/A'}</td>
-                    <td>${ticket.description || ''}</td>
-                    <td>${date}</td>
-                    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
-                    <td>
-                        <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
-                        <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
-                        <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
-                    </td>
-                `;
-            });
-        } catch (error) {
-            console.error('Error loading tickets:', error);
-        }
-    }
+    
 
     async editTicket(id) {
         try {
@@ -600,15 +571,23 @@ class WarehouseApp {
                 }
 
                 // Update form UI for editing mode
-                document.getElementById('ticketFormTitle').textContent = 'Editar Ticket';
-                document.getElementById('ticketSubmitBtn').textContent = 'Actualizar Ticket';
-                document.getElementById('ticketCancelBtn').style.display = 'inline-block';
+                const titleElement = document.getElementById('ticketFormTitle');
+                const submitBtn = document.getElementById('ticketSubmitBtn');
+                const cancelBtn = document.getElementById('ticketCancelBtn');
+
+                if (titleElement) titleElement.textContent = 'Editar Ticket';
+                if (submitBtn) submitBtn.textContent = 'Actualizar Ticket';
+                if (cancelBtn) cancelBtn.style.display = 'inline-block';
 
                 // Scroll to form
-                document.getElementById('ticketForm').scrollIntoView({ behavior: 'smooth' });
+                const formElement = document.getElementById('ticketForm');
+                if (formElement) {
+                    formElement.scrollIntoView({ behavior: 'smooth' });
+                }
 
                 this.editingTicket = id;
             } else {
+                console.log('No ticket data found');
                 alert('Ticket not found');
             }
         } catch (error) {
@@ -989,77 +968,7 @@ class WarehouseApp {
         this.loadTickets();
     }
 
-    // Updated loadTickets method with filters
-    async loadTickets(pilotFilter = '', doctorFilter = '', dateFilter = '', descriptionFilter = '') {
-        try {
-            // Show loading indicator
-            const tbody = document.querySelector('#ticketsTable tbody');
-tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading tickets...</td></tr>';
-            
-            let url = 'api/tickets.php';
-            const params = new URLSearchParams();
-            
-if (pilotFilter) params.append('pilot', pilotFilter);
-            if (doctorFilter) params.append('doctor', doctorFilter);
-                if (dateFilter) params.append('date', dateFilter);
-            if (descriptionFilter) params.append('description', descriptionFilter);
 
-            if (params.toString()) {
-            url += '?' + params.toString();
-}
-            
-            const response = await fetch(url);
-if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const tickets = await response.json();
-
-                tbody.innerHTML = '';
-                
-                    if (tickets.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No tickets found</td></tr>';
-return;
-                }
-                
-                    tickets.forEach(ticket => {
-                    const row = tbody.insertRow();
-const date = new Date(ticket.created_at).toLocaleDateString();
-                const totalCost = parseFloat(ticket.total_cost || 0);
-                    
-                    // Format pilots
-                    const pilotsHtml = ticket.pilots && ticket.pilots.length > 0
-                    ? ticket.pilots.map(p => `<span class="pilot-tag">${p.name}</span>`).join(' ')
-                    : '<span class="no-data">Sin pilotos</span>';
-                    
-                    // Format doctors
-                    const doctorsHtml = ticket.doctors && ticket.doctors.length > 0
-                        ? ticket.doctors.map(d => `<span class="doctor-tag">${d.name}</span>`).join(' ')
-                        : '<span class="no-data">Sin médicos</span>';
-                        
-                    row.innerHTML = `
-                <td>${ticket.ticket_number}</td>
-            <td>${ticket.plane_name || 'N/A'}</td>
-        <td class="pilots-list">${pilotsHtml}</td>
-            <td class="doctors-list">${doctorsHtml}</td>
-        <td>${ticket.description || ''}</td>
-    <td>${date}</td>
-    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
-    <td>
-    <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
-    <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
-    <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
-    </td>
-    `;
-    });
-    } catch (error) {
-    console.error('Error loading tickets:', error);
-    const tbody = document.querySelector('#ticketsTable tbody');
-    tbody.innerHTML = `<tr><td colspan="8" class="error">Error loading tickets: ${error.message}</td></tr>`;
-    }
-    }
-
-    // Updated createTicket method
     // Updated createTicket method to handle both create and update
     async createTicket() {
         const ticketId = document.getElementById('ticketId').value;
