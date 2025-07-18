@@ -23,6 +23,7 @@
                 <button class="nav-btn" onclick="showSection('planes')">Aviones</button>
                 <button class="nav-btn" onclick="showSection('tickets')">Tickets</button>
                 <button class="nav-btn" onclick="showSection('pilots')">Pilotos</button>
+                <button class="nav-btn" onclick="showSection('doctors')">Médicos</button>
             </nav>
         </header>
 
@@ -98,7 +99,7 @@
         <!-- Tickets Section -->
         <section id="tickets" class="section">
             <h2>Menejo de Tickets</h2>
-            
+
             <div class="form-container">
                 <h3 id="ticketFormTitle">Crear Ticket</h3>
                 <form id="ticketForm">
@@ -106,14 +107,39 @@
                     <select id="ticketPlane" required>
                         <option value="">Seleccionar Avión</option>
                     </select>
-                    <select id="ticketPilot" required>
-                        <option value="">Seleccionar Piloto</option>
-                    </select>
+
+                    <div class="multi-select-container">
+                        <label>Pilotos:</label>
+                        <div id="ticketPilots" class="multi-select">
+                            <!-- Pilots will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="multi-select-container">
+                        <label>Médicos:</label>
+                        <div id="ticketDoctors" class="multi-select">
+                            <!-- Doctors will be loaded here -->
+                        </div>
+                    </div>
+
                     <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
                     <input type="text" id="ticketDescription" placeholder="Descripcion">
                     <button type="submit" id="ticketSubmitBtn">Crear Ticket</button>
                     <button type="button" id="ticketCancelBtn" onclick="app.cancelTicketEdit()" style="display: none;">Cancelar</button>
                 </form>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="filters-container">
+                <h3>Filtros</h3>
+                <div class="filters-row">
+                    <input type="text" id="filterPilot" placeholder="Filtrar por piloto">
+                    <input type="text" id="filterDoctor" placeholder="Filtrar por médico">
+                    <input type="date" id="filterDate" placeholder="Filtrar por fecha">
+                    <input type="text" id="filterDescription" placeholder="Filtrar por descripción">
+                    <button onclick="app.applyFilters()">Aplicar Filtros</button>
+                    <button onclick="app.clearFilters()">Limpiar Filtros</button>
+                </div>
             </div>
 
             <div class="table-container">
@@ -123,7 +149,8 @@
                         <tr>
                             <th>Ticket #</th>
                             <th>Avión</th>
-                            <th>Piloto</th>
+                            <th>Pilotos</th>
+                            <th>Médicos</th>
                             <th>Descripcion</th>
                             <th>Fecha</th>
                             <th>Total Cost</th>
@@ -160,6 +187,36 @@
             <div class="table-container">
                 <h3>Pilotos</h3>
                 <table id="pilotsTable">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Doctors Section -->
+        <section id="doctors" class="section">
+            <h2>Médicos</h2>
+
+            <div class="form-container">
+                <h3 id="doctorFormTitle">Añadir Médico</h3>
+                <form id="doctorForm">
+                    <input type="hidden" id="doctorId">
+                    <input type="text" id="doctorName" placeholder="Nombre del Médico" required>
+                    <div class="form-buttons">
+                        <button type="submit" id="doctorSubmitBtn">Añadir Médico</button>
+                        <button type="button" id="doctorCancelBtn" onclick="app.cancelDoctorEdit()" style="display: none;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Médicos</h3>
+                <table id="doctorsTable">
                     <thead>
                         <tr>
                             <th>Nombre</th>

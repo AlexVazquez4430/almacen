@@ -16,11 +16,38 @@ CREATE TABLE IF NOT EXISTS pilots (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create doctors table
+CREATE TABLE IF NOT EXISTS doctors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create ticket_pilots junction table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS ticket_pilots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id INTEGER NOT NULL,
+    pilot_id INTEGER NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
+    UNIQUE(ticket_id, pilot_id)
+);
+
+-- Create ticket_doctors junction table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS ticket_doctors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    UNIQUE(ticket_id, doctor_id)
+);
+
 -- Update products table to include price
 -- ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00;
 
--- Update tickets table to include pilot_id
--- ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
+-- Remove pilot_id column from tickets table (now using junction table)
+-- The pilot_id column in tickets table is deprecated in favor of the many-to-many relationship
 
 -- Default administrator user (automatically created by database.php)
 -- Username: administrador
@@ -33,6 +60,14 @@ CREATE TABLE IF NOT EXISTS pilots (
 -- ('Carlos López'),
 -- ('Ana Rodríguez'),
 -- ('Luis Martínez');
+
+-- Sample data for doctors (will be automatically inserted by database.php)
+-- INSERT INTO doctors (name) VALUES
+-- ('Dr. Roberto Sánchez'),
+-- ('Dra. Carmen Morales'),
+-- ('Dr. Fernando Jiménez'),
+-- ('Dra. Patricia Vega'),
+-- ('Dr. Miguel Torres');
 
 -- Note: The database.php file will automatically handle table creation and modifications
 -- You don't need to run these commands manually as they are handled by the application

@@ -61,12 +61,17 @@ class WarehouseApp {
 
         document.getElementById('ticketForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.saveTicket();
+            this.createTicket();
         });
 
         document.getElementById('pilotForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.savePilot();
+        });
+
+        document.getElementById('doctorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveDoctor();
         });
     }
 
@@ -95,9 +100,13 @@ class WarehouseApp {
                 await this.loadTickets();
                 await this.loadPlanesForTickets();
                 await this.loadPilotsForTickets();
+                await this.loadDoctorsForTickets();
                 break;
             case 'pilots':
                 await this.loadPilots();
+                break;
+            case 'doctors':
+                await this.loadDoctors();
                 break;
         }
     }
@@ -621,7 +630,289 @@ class WarehouseApp {
         }
     }
 
-    // EXISTING METHODS (keeping the original functionality)
+    // DOCTORS CRUD METHODS
+    async loadDoctors() {
+        try {
+            const response = await fetch('api/doctors.php');
+            const doctors = await response.json();
+
+            const tbody = document.querySelector('#doctorsTable tbody');
+            tbody.innerHTML = '';
+
+            doctors.forEach(doctor => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${doctor.name}</td>
+                    <td>
+                        <button class="btn-small btn-primary" onclick="app.editDoctor(${doctor.id})">Editar</button>
+                        <button class="btn-small btn-danger" onclick="app.deleteDoctor(${doctor.id})">Eliminar</button>
+                    </td>
+                `;
+            });
+        } catch (error) {
+            console.error('Error loading doctors:', error);
+        }
+    }
+
+    async saveDoctor() {
+        const id = document.getElementById('doctorId').value;
+        const name = document.getElementById('doctorName').value;
+
+        if (!name.trim()) {
+            alert('Please enter a doctor name');
+            return;
+        }
+
+        try {
+            const response = await fetch('api/doctors.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id || null, name: name })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('doctorForm').reset();
+                document.getElementById('doctorId').value = '';
+                this.cancelDoctorEdit();
+                this.loadDoctors();
+            } else {
+                alert('Error saving doctor: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error saving doctor:', error);
+            alert('Error saving doctor: ' + error.message);
+        }
+    }
+
+    editDoctor(id) {
+        fetch('api/doctors.php')
+            .then(response => response.json())
+            .then(doctors => {
+                const doctor = doctors.find(d => d.id == id);
+                if (doctor) {
+                    document.getElementById('doctorId').value = doctor.id;
+                    document.getElementById('doctorName').value = doctor.name;
+
+                    document.getElementById('doctorFormTitle').textContent = 'Editar Médico';
+                    document.getElementById('doctorSubmitBtn').textContent = 'Actualizar Médico';
+                    document.getElementById('doctorCancelBtn').style.display = 'inline-block';
+
+                    this.editingDoctor = id;
+                }
+            });
+    }
+
+    cancelDoctorEdit() {
+        document.getElementById('doctorForm').reset();
+        document.getElementById('doctorId').value = '';
+        document.getElementById('doctorFormTitle').textContent = 'Añadir Médico';
+        document.getElementById('doctorSubmitBtn').textContent = 'Añadir Médico';
+        document.getElementById('doctorCancelBtn').style.display = 'none';
+        this.editingDoctor = null;
+    }
+
+    async deleteDoctor(id) {
+        if (confirm('¿Está seguro de que desea eliminar este médico?')) {
+            try {
+                const response = await fetch('api/doctors.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    this.loadDoctors();
+                } else {
+                    alert('Error deleting doctor: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting doctor:', error);
+                alert('Error deleting doctor: ' + error.message);
+            }
+        }
+    }
+
+    // Load doctors for ticket form
+    async loadDoctorsForTickets() {
+        try {
+            const response = await fetch('api/doctors.php');
+            const doctors = await response.json();
+
+            const container = document.getElementById('ticketDoctors');
+            container.innerHTML = '';
+
+            doctors.forEach(doctor => {
+                const div = document.createElement('div');
+                div.className = 'multi-select-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="doctor_${doctor.id}" value="${doctor.id}">
+                    <label for="doctor_${doctor.id}">${doctor.name}</label>
+                `;
+                container.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error loading doctors for tickets:', error);
+        }
+    }
+
+    // Load pilots for ticket form (multi-select)
+    async loadPilotsForTickets() {
+        try {
+            const response = await fetch('api/pilots.php');
+            const pilots = await response.json();
+
+            const container = document.getElementById('ticketPilots');
+            container.innerHTML = '';
+
+            pilots.forEach(pilot => {
+                const div = document.createElement('div');
+                div.className = 'multi-select-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="pilot_${pilot.id}" value="${pilot.id}">
+                    <label for="pilot_${pilot.id}">${pilot.name}</label>
+                `;
+                container.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error loading pilots for tickets:', error);
+        }
+    }
+
+    // Filter methods
+    applyFilters() {
+        const pilot = document.getElementById('filterPilot').value;
+        const doctor = document.getElementById('filterDoctor').value;
+        const date = document.getElementById('filterDate').value;
+        const description = document.getElementById('filterDescription').value;
+
+        this.loadTickets(pilot, doctor, date, description);
+    }
+
+    clearFilters() {
+        document.getElementById('filterPilot').value = '';
+        document.getElementById('filterDoctor').value = '';
+        document.getElementById('filterDate').value = '';
+        document.getElementById('filterDescription').value = '';
+        this.loadTickets();
+    }
+
+    // Updated loadTickets method with filters
+    async loadTickets(pilotFilter = '', doctorFilter = '', dateFilter = '', descriptionFilter = '') {
+        try {
+            let url = 'api/tickets.php';
+            const params = new URLSearchParams();
+
+            if (pilotFilter) params.append('pilot', pilotFilter);
+            if (doctorFilter) params.append('doctor', doctorFilter);
+            if (dateFilter) params.append('date', dateFilter);
+            if (descriptionFilter) params.append('description', descriptionFilter);
+
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            const response = await fetch(url);
+            const tickets = await response.json();
+
+            const tbody = document.querySelector('#ticketsTable tbody');
+            tbody.innerHTML = '';
+
+            tickets.forEach(ticket => {
+                const row = tbody.insertRow();
+                const date = new Date(ticket.created_at).toLocaleDateString();
+                const totalCost = parseFloat(ticket.total_cost || 0);
+
+                // Format pilots
+                const pilotsHtml = ticket.pilots && ticket.pilots.length > 0
+                    ? ticket.pilots.map(p => `<span class="pilot-tag">${p.name}</span>`).join(' ')
+                    : '<span class="no-data">Sin pilotos</span>';
+
+                // Format doctors
+                const doctorsHtml = ticket.doctors && ticket.doctors.length > 0
+                    ? ticket.doctors.map(d => `<span class="doctor-tag">${d.name}</span>`).join(' ')
+                    : '<span class="no-data">Sin médicos</span>';
+
+                row.innerHTML = `
+                    <td>${ticket.ticket_number}</td>
+                    <td>${ticket.plane_name || 'N/A'}</td>
+                    <td class="pilots-list">${pilotsHtml}</td>
+                    <td class="doctors-list">${doctorsHtml}</td>
+                    <td>${ticket.description || ''}</td>
+                    <td>${date}</td>
+                    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
+                    <td>
+                        <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
+                        <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
+                        <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
+                    </td>
+                `;
+            });
+        } catch (error) {
+            console.error('Error loading tickets:', error);
+        }
+    }
+
+    // Updated createTicket method
+    async createTicket() {
+        const planeId = document.getElementById('ticketPlane').value;
+        const ticketNumber = document.getElementById('ticketNumber').value;
+        const description = document.getElementById('ticketDescription').value;
+
+        // Get selected pilots
+        const selectedPilots = [];
+        document.querySelectorAll('#ticketPilots input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedPilots.push(parseInt(checkbox.value));
+        });
+
+        // Get selected doctors
+        const selectedDoctors = [];
+        document.querySelectorAll('#ticketDoctors input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedDoctors.push(parseInt(checkbox.value));
+        });
+
+        if (!planeId || !ticketNumber) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        if (selectedPilots.length === 0) {
+            alert('Please select at least one pilot');
+            return;
+        }
+
+        try {
+            const response = await fetch('api/tickets.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plane_id: planeId,
+                    pilot_ids: selectedPilots,
+                    doctor_ids: selectedDoctors,
+                    ticket_number: ticketNumber,
+                    description: description
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('ticketForm').reset();
+                // Uncheck all checkboxes
+                document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => cb.checked = false);
+                this.loadTickets();
+            } else {
+                alert('Error creating ticket: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error creating ticket:', error);
+            alert('Error creating ticket: ' + error.message);
+        }
+    }
     async managePlaneStock(planeId) {
         try {
             const response = await fetch('api/products.php');

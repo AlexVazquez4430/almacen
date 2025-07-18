@@ -53,6 +53,21 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Cost Preview**: Real-time cost preview when adding items
 - ✅ **Ticket Cost Display**: Total cost shown in tickets table
 
+### 6. Enhanced Ticket Management (NEW)
+- ✅ **Multiple Pilots**: Each ticket can have one or multiple pilots assigned
+- ✅ **Multiple Doctors**: Each ticket can have one or multiple doctors assigned
+- ✅ **Advanced Filtering**: Filter tickets by pilot name, doctor name, date, or description
+- ✅ **Multi-select Interface**: Easy selection of multiple pilots and doctors
+- ✅ **Visual Tags**: Pilots and doctors displayed as colored tags in the tickets table
+- ✅ **Real-time Search**: Instant filtering as you type
+
+### 7. Doctors Management (NEW)
+- ✅ **Create**: Add new doctors with name
+- ✅ **Read**: View all doctors in a table format
+- ✅ **Update**: Edit doctor names
+- ✅ **Delete**: Remove doctors from the system
+- ✅ **Integration**: Doctors can be assigned to tickets
+
 ## Database Schema Changes (SQLite)
 
 ### Users Table
@@ -76,12 +91,34 @@ CREATE TABLE users (
 - **Protected APIs:** All API endpoints require valid session
 - **Auto-redirect:** Unauthenticated users redirected to login page
 
-### New Table: `pilots`
+### New Tables
 ```sql
 CREATE TABLE pilots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE doctors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ticket_pilots (
+    ticket_id INTEGER NOT NULL,
+    pilot_id INTEGER NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
+    PRIMARY KEY (ticket_id, pilot_id)
+);
+
+CREATE TABLE ticket_doctors (
+    ticket_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    PRIMARY KEY (ticket_id, doctor_id)
 );
 ```
 
@@ -110,12 +147,20 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - **Username**: admin
 - **Password**: admin (change immediately after first login)
 
-### Sample Pilots (Auto-created)
+### Sample Data (Auto-created)
+**Pilots:**
 - Juan Pérez
 - María García
 - Carlos López
 - Ana Rodríguez
 - Luis Martínez
+
+**Doctors:**
+- Dr. Smith
+- Dr. Johnson
+- Dr. Williams
+- Dr. Brown
+- Dr. Davis
 
 ## API Endpoints
 
@@ -143,12 +188,20 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - `PUT /api/pilots.php` - Update pilot name
 - `DELETE /api/pilots.php` - Delete pilot
 
+### Doctors API (`api/doctors.php`) - NEW
+- `GET /api/doctors.php` - Get all doctors
+- `POST /api/doctors.php` - Create new doctor (name only)
+- `PUT /api/doctors.php` - Update doctor name
+- `DELETE /api/doctors.php` - Delete doctor
+
 ## User Interface Features
 
-### Simplified Pilot Management
-- **Name Only**: Pilots only require a name field (as requested)
-- **Simple Form**: Clean, minimal form for adding/editing pilots
+### Simplified Management
+- **Name Only**: Pilots and doctors only require a name field
+- **Simple Forms**: Clean, minimal forms for adding/editing pilots and doctors
 - **Easy Management**: Quick add, edit, and delete operations
+- **Multi-select**: Intuitive interface for assigning multiple pilots/doctors to tickets
+- **Tag Display**: Visual tags for assigned pilots and doctors in ticket views
 
 ### Form Enhancements
 - Edit mode for all entities with form state management
@@ -164,9 +217,11 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - **Update Stock** for products (existing functionality)
 
 ### Navigation
-- Added "Pilotos" section to main navigation
+- Added "Pilots" and "Doctors" sections to main navigation
+- Enhanced ticket creation/editing interface with multi-select
 - Responsive design improvements
 - Better button styling with color coding
+- Visual tags for assigned resources in tables
 
 ## Installation & Setup
 
@@ -226,14 +281,18 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 1. **Products**: Add products with pricing, edit details, manage stock levels
 2. **Planes**: Manage aircraft fleet, assign stock to planes
 3. **Pilots**: Maintain simple pilot database with names only
-4. **Tickets**: Create work orders with plane and pilot assignments
-5. **Stock Management**: Transfer inventory between warehouse and planes
-6. **Ticket Items**: Manage items associated with specific tickets with cost tracking
-7. **Cost Management**:
-   - View individual item costs (quantity × unit price)
-   - See real-time cost preview when adding items
-   - Track total ticket costs in the tickets table
-   - Monitor product pricing across all transactions
+4. **Doctors**: Manage medical professionals database
+5. **Tickets**: Create work orders with multiple pilot and doctor assignments
+6. **Advanced Filtering**: Filter tickets by pilot name, doctor name, date, or description
+7. **Stock Management**: Transfer inventory between warehouse and planes
+8. **Ticket Items**: Manage items associated with specific tickets with cost tracking
+9. **Cost Management**: View individual item costs and total ticket costs
+
+### Ticket Management Features:
+- **Multiple Assignments**: Assign multiple pilots and doctors to each ticket
+- **Real-time Filtering**: Type to instantly filter tickets by any criteria
+- **Visual Display**: Pilots and doctors shown as colored tags for easy identification
+- **Comprehensive Search**: Search by pilot name, doctor name, date, or description
 
 ## Troubleshooting
 

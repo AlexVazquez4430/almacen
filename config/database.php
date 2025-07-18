@@ -58,6 +58,15 @@ class Database {
                 )
             ");
 
+            // Doctors table
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS doctors (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(255) NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ");
+
             // Product minimum requirements per plane
             $this->db->exec("
                 CREATE TABLE IF NOT EXISTS plane_product_minimums (
@@ -111,6 +120,30 @@ class Database {
                 )
             ");
 
+            // Ticket pilots junction table (many-to-many)
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS ticket_pilots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ticket_id INTEGER NOT NULL,
+                    pilot_id INTEGER NOT NULL,
+                    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+                    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
+                    UNIQUE(ticket_id, pilot_id)
+                )
+            ");
+
+            // Ticket doctors junction table (many-to-many)
+            $this->db->exec("
+                CREATE TABLE IF NOT EXISTS ticket_doctors (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ticket_id INTEGER NOT NULL,
+                    doctor_id INTEGER NOT NULL,
+                    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+                    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+                    UNIQUE(ticket_id, doctor_id)
+                )
+            ");
+
             // Add price column to existing products table if it doesn't exist
             try {
                 $this->db->exec("ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00");
@@ -144,6 +177,21 @@ class Database {
                     ('Carlos López'),
                     ('Ana Rodríguez'),
                     ('Luis Martínez')
+                ");
+            }
+
+            // Insert sample doctors if table is empty
+            $stmt = $this->db->query("SELECT COUNT(*) FROM doctors");
+            $doctorCount = $stmt->fetchColumn();
+
+            if ($doctorCount == 0) {
+                $this->db->exec("
+                    INSERT INTO doctors (name) VALUES
+                    ('Dr. Roberto Sánchez'),
+                    ('Dra. Carmen Morales'),
+                    ('Dr. Fernando Jiménez'),
+                    ('Dra. Patricia Vega'),
+                    ('Dr. Miguel Torres')
                 ");
             }
 
