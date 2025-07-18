@@ -20,7 +20,64 @@ try {
     switch($method) {
         case 'GET':
             try {
-                // Get filter parameters
+                // Check if requesting a specific ticket by ID
+                $ticket_id = $_GET['id'] ?? '';
+
+                if (!empty($ticket_id)) {
+                    // Fetch single ticket by ID
+                    $query = "
+                        SELECT
+                            t.*,
+                            p.name as plane_name,
+                            COALESCE(
+                                (SELECT SUM(ti.quantity_used * pr.price)
+                                 FROM ticket_items ti
+                                 LEFT JOIN products pr ON ti.product_id = pr.id
+                                 WHERE ti.ticket_id = t.id),
+                                0
+                            ) as total_cost
+                        FROM tickets t
+                        LEFT JOIN planes p ON t.plane_id = p.id
+                        WHERE t.id = ?
+                    ";
+
+                    $stmt = $db->prepare($query);
+                    $stmt->execute([$ticket_id]);
+                    $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    if (empty($tickets)) {
+                        echo json_encode(['error' => 'Ticket not found']);
+                        break;
+                    }
+
+                    // Get pilots and doctors for this ticket
+                    foreach ($tickets as &$ticket) {
+                        // Get pilots for this ticket
+                        $pilotStmt = $db->prepare("
+                            SELECT p.id, p.name
+                            FROM pilots p
+                            JOIN ticket_pilots tp ON p.id = tp.pilot_id
+                            WHERE tp.ticket_id = ?
+                        ");
+                        $pilotStmt->execute([$ticket['id']]);
+                        $ticket['pilots'] = $pilotStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        // Get doctors for this ticket
+                        $doctorStmt = $db->prepare("
+                            SELECT d.id, d.name
+                            FROM doctors d
+                            JOIN ticket_doctors td ON d.id = td.doctor_id
+                            WHERE td.ticket_id = ?
+                        ");
+                        $doctorStmt->execute([$ticket['id']]);
+                        $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
+
+                    echo json_encode($tickets[0]); // Return single ticket object
+                    break;
+                }
+
+                // Get filter parameters for listing all tickets
                 $pilot_filter = $_GET['pilot'] ?? '';
                 $doctor_filter = $_GET['doctor'] ?? '';
                 $date_filter = $_GET['date'] ?? '';
@@ -155,22 +212,55 @@ try {
             
         case 'PUT':
             $data = json_decode(file_get_contents('php://input'), true);
-            if (!$data) {
-                echo json_encode(['error' => 'Invalid JSON data']);
+            if (!$data || !isset($data['id'])) {
+                echo json_encode(['error' => 'Invalid JSON data or missing ID']);
                 break;
             }
-            
+
             try {
-                $stmt = $db->prepare("UPDATE tickets SET plane_id = ?, pilot_id = ?, ticket_number = ?, description = ? WHERE id = ?");
+                $db->beginTransaction();
+
+                // Update the main ticket information
+                $stmt = $db->prepare("UPDATE tickets SET plane_id = ?, ticket_number = ?, description = ? WHERE id = ?");
                 $stmt->execute([
-                    $data['plane_id'], 
-                    $data['pilot_id'], 
-                    $data['ticket_number'], 
-                    $data['description'] ?? '', 
+                    $data['plane_id'],
+                    $data['ticket_number'],
+                    $data['description'] ?? '',
                     $data['id']
                 ]);
+
+                // Remove existing pilot assignments
+                $stmt = $db->prepare("DELETE FROM ticket_pilots WHERE ticket_id = ?");
+                $stmt->execute([$data['id']]);
+
+                // Add new pilot assignments
+                if (isset($data['pilot_ids']) && is_array($data['pilot_ids'])) {
+                    $pilotStmt = $db->prepare("INSERT INTO ticket_pilots (ticket_id, pilot_id) VALUES (?, ?)");
+                    foreach ($data['pilot_ids'] as $pilotId) {
+                        if (!empty($pilotId)) {
+                            $pilotStmt->execute([$data['id'], $pilotId]);
+                        }
+                    }
+                }
+
+                // Remove existing doctor assignments
+                $stmt = $db->prepare("DELETE FROM ticket_doctors WHERE ticket_id = ?");
+                $stmt->execute([$data['id']]);
+
+                // Add new doctor assignments
+                if (isset($data['doctor_ids']) && is_array($data['doctor_ids'])) {
+                    $doctorStmt = $db->prepare("INSERT INTO ticket_doctors (ticket_id, doctor_id) VALUES (?, ?)");
+                    foreach ($data['doctor_ids'] as $doctorId) {
+                        if (!empty($doctorId)) {
+                            $doctorStmt->execute([$data['id'], $doctorId]);
+                        }
+                    }
+                }
+
+                $db->commit();
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
+                $db->rollback();
                 echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
             }
             break;

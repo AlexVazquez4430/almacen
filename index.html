@@ -172,15 +172,17 @@
 
         <!-- Pilots Section -->
         <section id="pilots" class="section">
-            <h2>Administración de Pilotos</h2>
+            <h2>Pilotos</h2>
 
             <div class="form-container">
                 <h3 id="pilotFormTitle">Añadir Piloto</h3>
                 <form id="pilotForm">
                     <input type="hidden" id="pilotId">
-                    <input type="text" id="pilotName" placeholder="Nombre del piloto" required>
-                    <button type="submit" id="pilotSubmitBtn">Añadir Piloto</button>
-                    <button type="button" id="pilotCancelBtn" onclick="app.cancelPilotEdit()" style="display: none;">Cancelar</button>
+                    <input type="text" id="pilotName" placeholder="Nombre del Piloto" required>
+                    <div class="form-buttons">
+                        <button type="submit" id="pilotSubmitBtn">Añadir Piloto</button>
+                        <button type="button" id="pilotCancelBtn" onclick="app.cancelPilotEdit()" style="display: none;">Cancelar</button>
+                    </div>
                 </form>
             </div>
 

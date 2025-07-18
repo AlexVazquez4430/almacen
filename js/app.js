@@ -420,25 +420,67 @@ class WarehouseApp {
         }
     }
 
-    editTicket(id) {
-        fetch('api/tickets.php')
-            .then(response => response.json())
-            .then(tickets => {
-                const ticket = tickets.find(t => t.id == id);
-                if (ticket) {
-                    document.getElementById('ticketId').value = ticket.id;
-                    document.getElementById('ticketPlane').value = ticket.plane_id;
-                    document.getElementById('ticketPilot').value = ticket.pilot_id;
-                    document.getElementById('ticketNumber').value = ticket.ticket_number;
-                    document.getElementById('ticketDescription').value = ticket.description || '';
-                    
-                    document.getElementById('ticketFormTitle').textContent = 'Editar Ticket';
-                    document.getElementById('ticketSubmitBtn').textContent = 'Actualizar Ticket';
-                    document.getElementById('ticketCancelBtn').style.display = 'inline-block';
-                    
-                    this.editingTicket = id;
+    async editTicket(id) {
+        try {
+            // Fetch the specific ticket with its pilots and doctors
+            const response = await fetch(`api/tickets.php?id=${id}`);
+            const ticketData = await response.json();
+
+            if (ticketData && ticketData.length > 0) {
+                const ticket = ticketData[0]; // API returns array, get first item
+
+                // Set basic ticket information
+                document.getElementById('ticketId').value = ticket.id;
+                document.getElementById('ticketPlane').value = ticket.plane_id;
+                document.getElementById('ticketNumber').value = ticket.ticket_number;
+                document.getElementById('ticketDescription').value = ticket.description || '';
+
+                // Clear all pilot checkboxes first
+                document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+
+                // Check the pilots assigned to this ticket
+                if (ticket.pilots && ticket.pilots.length > 0) {
+                    ticket.pilots.forEach(pilot => {
+                        const checkbox = document.getElementById(`pilot_${pilot.id}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
                 }
-            });
+
+                // Clear all doctor checkboxes first
+                document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+
+                // Check the doctors assigned to this ticket
+                if (ticket.doctors && ticket.doctors.length > 0) {
+                    ticket.doctors.forEach(doctor => {
+                        const checkbox = document.getElementById(`doctor_${doctor.id}`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
+                }
+
+                // Update form UI for editing mode
+                document.getElementById('ticketFormTitle').textContent = 'Editar Ticket';
+                document.getElementById('ticketSubmitBtn').textContent = 'Actualizar Ticket';
+                document.getElementById('ticketCancelBtn').style.display = 'inline-block';
+
+                // Scroll to form
+                document.getElementById('ticketForm').scrollIntoView({ behavior: 'smooth' });
+
+                this.editingTicket = id;
+            } else {
+                alert('Ticket not found');
+            }
+        } catch (error) {
+            console.error('Error loading ticket for editing:', error);
+            alert('Error loading ticket: ' + error.message);
+        }
     }
 
     cancelTicketEdit() {
@@ -447,6 +489,11 @@ class WarehouseApp {
         document.getElementById('ticketFormTitle').textContent = 'Crear Ticket';
         document.getElementById('ticketSubmitBtn').textContent = 'Crear Ticket';
         document.getElementById('ticketCancelBtn').style.display = 'none';
+
+        // Uncheck all checkboxes
+        document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => cb.checked = false);
+
         this.editingTicket = null;
     }
 
@@ -555,11 +602,6 @@ class WarehouseApp {
             const response = await fetch('api/pilots.php');
             const pilots = await response.json();
 
-            if (pilots.error) {
-                console.error('Error loading pilots:', pilots.error);
-                return;
-            }
-
             const tbody = document.querySelector('#pilotsTable tbody');
             tbody.innerHTML = '';
 
@@ -578,6 +620,38 @@ class WarehouseApp {
         }
     }
 
+    async savePilot() {
+        const id = document.getElementById('pilotId').value;
+        const name = document.getElementById('pilotName').value;
+
+        if (!name.trim()) {
+            alert('Please enter a pilot name');
+            return;
+        }
+
+        try {
+            const response = await fetch('api/pilots.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id || null, name: name })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById('pilotForm').reset();
+                document.getElementById('pilotId').value = '';
+                this.cancelPilotEdit();
+                this.loadPilots();
+            } else {
+                alert('Error saving pilot: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error saving pilot:', error);
+            alert('Error saving pilot: ' + error.message);
+        }
+    }
+
     editPilot(id) {
         fetch('api/pilots.php')
             .then(response => response.json())
@@ -593,9 +667,6 @@ class WarehouseApp {
 
                     this.editingPilot = id;
                 }
-            })
-            .catch(error => {
-                console.error('Error loading pilot for edit:', error);
             });
     }
 
@@ -614,14 +685,15 @@ class WarehouseApp {
                 const response = await fetch('api/pilots.php', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id })
+                    body: JSON.stringify({ id: id })
                 });
 
                 const result = await response.json();
+
                 if (result.success) {
                     this.loadPilots();
                 } else {
-                    alert('Error: ' + (result.error || 'Unknown error'));
+                    alert('Error deleting pilot: ' + (result.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error deleting pilot:', error);
@@ -803,61 +875,77 @@ class WarehouseApp {
     // Updated loadTickets method with filters
     async loadTickets(pilotFilter = '', doctorFilter = '', dateFilter = '', descriptionFilter = '') {
         try {
+            // Show loading indicator
+            const tbody = document.querySelector('#ticketsTable tbody');
+tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading tickets...</td></tr>';
+            
             let url = 'api/tickets.php';
             const params = new URLSearchParams();
-
-            if (pilotFilter) params.append('pilot', pilotFilter);
+            
+if (pilotFilter) params.append('pilot', pilotFilter);
             if (doctorFilter) params.append('doctor', doctorFilter);
-            if (dateFilter) params.append('date', dateFilter);
+                if (dateFilter) params.append('date', dateFilter);
             if (descriptionFilter) params.append('description', descriptionFilter);
 
             if (params.toString()) {
-                url += '?' + params.toString();
-            }
-
+            url += '?' + params.toString();
+}
+            
             const response = await fetch(url);
-            const tickets = await response.json();
+if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const tickets = await response.json();
 
-            const tbody = document.querySelector('#ticketsTable tbody');
-            tbody.innerHTML = '';
-
-            tickets.forEach(ticket => {
-                const row = tbody.insertRow();
-                const date = new Date(ticket.created_at).toLocaleDateString();
+                tbody.innerHTML = '';
+                
+                    if (tickets.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No tickets found</td></tr>';
+return;
+                }
+                
+                    tickets.forEach(ticket => {
+                    const row = tbody.insertRow();
+const date = new Date(ticket.created_at).toLocaleDateString();
                 const totalCost = parseFloat(ticket.total_cost || 0);
-
-                // Format pilots
-                const pilotsHtml = ticket.pilots && ticket.pilots.length > 0
+                    
+                    // Format pilots
+                    const pilotsHtml = ticket.pilots && ticket.pilots.length > 0
                     ? ticket.pilots.map(p => `<span class="pilot-tag">${p.name}</span>`).join(' ')
                     : '<span class="no-data">Sin pilotos</span>';
-
-                // Format doctors
-                const doctorsHtml = ticket.doctors && ticket.doctors.length > 0
-                    ? ticket.doctors.map(d => `<span class="doctor-tag">${d.name}</span>`).join(' ')
-                    : '<span class="no-data">Sin médicos</span>';
-
-                row.innerHTML = `
-                    <td>${ticket.ticket_number}</td>
-                    <td>${ticket.plane_name || 'N/A'}</td>
-                    <td class="pilots-list">${pilotsHtml}</td>
-                    <td class="doctors-list">${doctorsHtml}</td>
-                    <td>${ticket.description || ''}</td>
-                    <td>${date}</td>
-                    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
-                    <td>
-                        <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
-                        <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
-                        <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
-                    </td>
-                `;
-            });
-        } catch (error) {
-            console.error('Error loading tickets:', error);
-        }
+                    
+                    // Format doctors
+                    const doctorsHtml = ticket.doctors && ticket.doctors.length > 0
+                        ? ticket.doctors.map(d => `<span class="doctor-tag">${d.name}</span>`).join(' ')
+                        : '<span class="no-data">Sin médicos</span>';
+                        
+                    row.innerHTML = `
+                <td>${ticket.ticket_number}</td>
+            <td>${ticket.plane_name || 'N/A'}</td>
+        <td class="pilots-list">${pilotsHtml}</td>
+            <td class="doctors-list">${doctorsHtml}</td>
+        <td>${ticket.description || ''}</td>
+    <td>${date}</td>
+    <td class="cost-cell">$${totalCost.toFixed(2)}</td>
+    <td>
+    <button class="btn-small btn-primary" onclick="app.editTicket(${ticket.id})">Editar</button>
+    <button class="btn-small btn-info" onclick="app.manageTicketItems(${ticket.id})">Manage Items</button>
+    <button class="btn-small btn-danger" onclick="app.deleteTicket(${ticket.id})">Eliminar</button>
+    </td>
+    `;
+    });
+    } catch (error) {
+    console.error('Error loading tickets:', error);
+    const tbody = document.querySelector('#ticketsTable tbody');
+    tbody.innerHTML = `<tr><td colspan="8" class="error">Error loading tickets: ${error.message}</td></tr>`;
+    }
     }
 
     // Updated createTicket method
+    // Updated createTicket method to handle both create and update
     async createTicket() {
+        const ticketId = document.getElementById('ticketId').value;
         const planeId = document.getElementById('ticketPlane').value;
         const ticketNumber = document.getElementById('ticketNumber').value;
         const description = document.getElementById('ticketDescription').value;
@@ -885,32 +973,68 @@ class WarehouseApp {
         }
 
         try {
+            const isEditing = ticketId && ticketId.trim() !== '';
+            const method = isEditing ? 'PUT' : 'POST';
+            const requestBody = {
+                plane_id: planeId,
+                pilot_ids: selectedPilots,
+                doctor_ids: selectedDoctors,
+                ticket_number: ticketNumber,
+                description: description
+            };
+
+            if (isEditing) {
+                requestBody.id = parseInt(ticketId);
+            }
+
             const response = await fetch('api/tickets.php', {
-                method: 'POST',
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    plane_id: planeId,
-                    pilot_ids: selectedPilots,
-                    doctor_ids: selectedDoctors,
-                    ticket_number: ticketNumber,
-                    description: description
-                })
+                body: JSON.stringify(requestBody)
             });
 
             const result = await response.json();
 
             if (result.success) {
-                document.getElementById('ticketForm').reset();
-                // Uncheck all checkboxes
-                document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => cb.checked = false);
-                document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => cb.checked = false);
+                // Reset form
+                this.cancelTicketEdit();
                 this.loadTickets();
+
+                if (isEditing) {
+                    alert('Ticket updated successfully');
+                } else {
+                    alert('Ticket created successfully');
+                }
             } else {
-                alert('Error creating ticket: ' + (result.error || 'Unknown error'));
+                alert('Error saving ticket: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
-            console.error('Error creating ticket:', error);
-            alert('Error creating ticket: ' + error.message);
+            console.error('Error saving ticket:', error);
+            alert('Error saving ticket: ' + error.message);
+        }
+    }
+
+    async deleteTicket(id) {
+        if (confirm('¿Está seguro de que desea eliminar este ticket?')) {
+            try {
+                const response = await fetch('api/tickets.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    this.loadTickets();
+                    alert('Ticket deleted successfully');
+                } else {
+                    alert('Error deleting ticket: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting ticket:', error);
+                alert('Error deleting ticket: ' + error.message);
+            }
         }
     }
     async managePlaneStock(planeId) {
