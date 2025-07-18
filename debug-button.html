@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Edit Button</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { margin: 5px; padding: 10px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Edit Button Issue</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Direct Function Call</h3>
+        <button onclick="testDirectCall()">Test Direct editTicket Call</button>
+        <div id="direct-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Check if app exists</h3>
+        <button onclick="testAppExists()">Test App Object</button>
+        <div id="app-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Simulate Button Click</h3>
+        <table>
+            <thead>
+                <tr><th>Ticket #</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="test-tbody">
+                <!-- Will be populated by JavaScript -->
+            </tbody>
+        </table>
+        <button onclick="createTestButtons()">Create Test Buttons</button>
+    </div>
+
+    <!-- Include the main app.js -->
+    <script src="js/app.js"></script>
+    
+    <script>
+        function testDirectCall() {
+            const result = document.getElementById('direct-test-result');
+            try {
+                if (typeof app !== 'undefined' && app.editTicket) {
+                    result.innerHTML = '<div style="color: green;">✅ Calling app.editTicket(1) directly...</div>';
+                    app.editTicket(1);
+                } else {
+                    result.innerHTML = '<div style="color: red;">❌ app.editTicket not found</div>';
+                }
+            } catch (error) {
+                result.innerHTML = `<div style="color: red;">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        function testAppExists() {
+            const result = document.getElementById('app-test-result');
+            let html = '';
+            
+            if (typeof app !== 'undefined') {
+                html += '<div style="color: green;">✅ app object exists</div>';
+                html += `<div>app type: ${typeof app}</div>`;
+                html += `<div>app constructor: ${app.constructor.name}</div>`;
+                
+                if (app.editTicket) {
+                    html += '<div style="color: green;">✅ app.editTicket method exists</div>';
+                    html += `<div>editTicket type: ${typeof app.editTicket}</div>`;
+                } else {
+                    html += '<div style="color: red;">❌ app.editTicket method missing</div>';
+                }
+                
+                // List all methods
+                const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(app))
+                    .filter(name => typeof app[name] === 'function' && name !== 'constructor');
+                html += `<div>Available methods: ${methods.join(', ')}</div>`;
+            } else {
+                html += '<div style="color: red;">❌ app object not found</div>';
+            }
+            
+            result.innerHTML = html;
+        }
+        
+        function createTestButtons() {
+            const tbody = document.getElementById('test-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td>TEST-001</td>
+                    <td>
+                        <button onclick="console.log('Button clicked!'); app.editTicket(1)">Test Edit Button</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>TEST-002</td>
+                    <td>
+                        <button onclick="alert('Button works!'); testDirectCall()">Another Test</button>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // Auto-run tests
+        window.onload = () => {
+            testAppExists();
+            createTestButtons();
+        };
+    </script>
+</body>
+</html>
