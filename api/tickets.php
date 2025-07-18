@@ -73,7 +73,7 @@ try {
                         $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
                     }
 
-                    echo json_encode($tickets[0]); // Return single ticket object
+                    echo json_encode([$tickets[0]]); // Return array format for consistency
                     break;
                 }
 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Edit Test</title>
+</head>
+<body>
+    <h1>Ticket Edit Test</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        // Test the ticket editing API
+        async function testTicketEdit() {
+            const results = document.getElementById('test-results');
+            
+            try {
+                // Test 1: Fetch all tickets
+                console.log('Testing: Fetch all tickets...');
+                const response1 = await fetch('api/tickets.php');
+                const tickets = await response1.json();
+                console.log('All tickets:', tickets);
+                
+                if (tickets.length > 0) {
+                    const firstTicket = tickets[0];
+                    results.innerHTML += `<p>✅ Found ${tickets.length} tickets. First ticket ID: ${firstTicket.id}</p>`;
+                    
+                    // Test 2: Fetch single ticket by ID
+                    console.log(`Testing: Fetch ticket ID ${firstTicket.id}...`);
+                    const response2 = await fetch(`api/tickets.php?id=${firstTicket.id}`);
+                    const ticketData = await response2.json();
+                    console.log('Single ticket data:', ticketData);
+                    
+                    if (ticketData && ticketData.length > 0) {
+                        const ticket = ticketData[0];
+                        results.innerHTML += `<p>✅ Successfully fetched ticket: ${ticket.ticket_number}</p>`;
+                        results.innerHTML += `<p>Pilots: ${ticket.pilots ? ticket.pilots.length : 0}</p>`;
+                        results.innerHTML += `<p>Doctors: ${ticket.doctors ? ticket.doctors.length : 0}</p>`;
+                    } else {
+                        results.innerHTML += `<p>❌ Failed to fetch single ticket</p>`;
+                    }
+                } else {
+                    results.innerHTML += `<p>❌ No tickets found</p>`;
+                }
+                
+                // Test 3: Check if pilots API works
+                console.log('Testing: Fetch pilots...');
+                const response3 = await fetch('api/pilots.php');
+                const pilots = await response3.json();
+                console.log('Pilots:', pilots);
+                results.innerHTML += `<p>✅ Found ${pilots.length} pilots</p>`;
+                
+                // Test 4: Check if doctors API works
+                console.log('Testing: Fetch doctors...');
+                const response4 = await fetch('api/doctors.php');
+                const doctors = await response4.json();
+                console.log('Doctors:', doctors);
+                results.innerHTML += `<p>✅ Found ${doctors.length} doctors</p>`;
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = testTicketEdit;
+    </script>
+</body>
+</html>
