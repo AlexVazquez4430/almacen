@@ -514,16 +514,16 @@ class WarehouseApp {
                 this.loadTickets();
 
                 if (isEditing) {
-                    alert('Ticket updated successfully');
+                    alert('Se ha Actualizado el ticket correctamente');
                 } else {
-                    alert('Ticket created successfully');
+                    alert('Se ha creado el ticket correctamente');
                 }
             } else {
-                alert('Error saving ticket: ' + (result.error || 'Unknown error'));
+                alert('Error guardando el ticket: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
-            console.error('Error saving ticket:', error);
-            alert('Error saving ticket: ' + error.message);
+            console.error('Error guardando el ticket:', error);
+            alert('Error guardando el ticket: ' + error.message);
         }
     }
 
@@ -555,7 +555,7 @@ class WarehouseApp {
 
     async editTicket(id) {
         console.log('🔧 editTicket called with ID:', id);
-        alert('Edit button clicked! ID: ' + id);
+        //alert('Edit button clicked! ID: ' + id);
 
         try {
             // Fetch the specific ticket with its pilots and doctors
@@ -714,7 +714,7 @@ class WarehouseApp {
 
                 this.editingTicket = id;
                 console.log('✅ Edit setup complete');
-                alert('Edit setup complete! Check the form.');
+                //alert('Edit setup complete! Check the form.');
             } else {
                 console.log('❌ No ticket data found');
                 alert('Ticket not found');
