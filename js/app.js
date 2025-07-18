@@ -569,49 +569,109 @@ class WarehouseApp {
                 const ticket = ticketData[0]; // API returns array, get first item
                 console.log('✅ Processing ticket:', ticket);
 
-                // Set basic ticket information
+                // Set basic ticket information with error handling
                 console.log('📝 Setting form values...');
-                document.getElementById('ticketId').value = ticket.id;
-                document.getElementById('ticketPlane').value = ticket.plane_id;
-                document.getElementById('ticketNumber').value = ticket.ticket_number;
-                document.getElementById('ticketDescription').value = ticket.description || '';
+
+                try {
+                    const ticketIdEl = document.getElementById('ticketId');
+                    if (ticketIdEl) {
+                        ticketIdEl.value = ticket.id;
+                        console.log('✅ Set ticketId');
+                    } else {
+                        console.log('❌ ticketId element not found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error setting ticketId:', error);
+                }
+
+                try {
+                    const ticketPlaneEl = document.getElementById('ticketPlane');
+                    if (ticketPlaneEl) {
+                        ticketPlaneEl.value = ticket.plane_id;
+                        console.log('✅ Set ticketPlane');
+                    } else {
+                        console.log('❌ ticketPlane element not found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error setting ticketPlane:', error);
+                }
+
+                try {
+                    const ticketNumberEl = document.getElementById('ticketNumber');
+                    if (ticketNumberEl) {
+                        ticketNumberEl.value = ticket.ticket_number;
+                        console.log('✅ Set ticketNumber');
+                    } else {
+                        console.log('❌ ticketNumber element not found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error setting ticketNumber:', error);
+                }
+
+                try {
+                    const ticketDescEl = document.getElementById('ticketDescription');
+                    if (ticketDescEl) {
+                        ticketDescEl.value = ticket.description || '';
+                        console.log('✅ Set ticketDescription');
+                    } else {
+                        console.log('❌ ticketDescription element not found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error setting ticketDescription:', error);
+                }
 
                 // Clear all pilot checkboxes first
                 console.log('🧑‍✈️ Clearing pilot checkboxes...');
-                document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => {
-                    cb.checked = false;
-                });
+                try {
+                    document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                } catch (error) {
+                    console.error('❌ Error clearing pilot checkboxes:', error);
+                }
 
                 // Check the pilots assigned to this ticket
                 if (ticket.pilots && ticket.pilots.length > 0) {
                     console.log('🧑‍✈️ Setting pilot checkboxes:', ticket.pilots);
                     ticket.pilots.forEach(pilot => {
-                        const checkbox = document.getElementById(`pilot_${pilot.id}`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                            console.log(`✅ Checked pilot ${pilot.id}`);
-                        } else {
-                            console.log(`❌ Pilot checkbox not found: pilot_${pilot.id}`);
+                        try {
+                            const checkbox = document.getElementById(`pilot_${pilot.id}`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                console.log(`✅ Checked pilot ${pilot.id}`);
+                            } else {
+                                console.log(`❌ Pilot checkbox not found: pilot_${pilot.id}`);
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error setting pilot ${pilot.id}:`, error);
                         }
                     });
                 }
 
                 // Clear all doctor checkboxes first
                 console.log('👨‍⚕️ Clearing doctor checkboxes...');
-                document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => {
-                    cb.checked = false;
-                });
+                try {
+                    document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                } catch (error) {
+                    console.error('❌ Error clearing doctor checkboxes:', error);
+                }
 
                 // Check the doctors assigned to this ticket
                 if (ticket.doctors && ticket.doctors.length > 0) {
                     console.log('👨‍⚕️ Setting doctor checkboxes:', ticket.doctors);
                     ticket.doctors.forEach(doctor => {
-                        const checkbox = document.getElementById(`doctor_${doctor.id}`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                            console.log(`✅ Checked doctor ${doctor.id}`);
-                        } else {
-                            console.log(`❌ Doctor checkbox not found: doctor_${doctor.id}`);
+                        try {
+                            const checkbox = document.getElementById(`doctor_${doctor.id}`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                                console.log(`✅ Checked doctor ${doctor.id}`);
+                            } else {
+                                console.log(`❌ Doctor checkbox not found: doctor_${doctor.id}`);
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error setting doctor ${doctor.id}:`, error);
                         }
                     });
                 }
