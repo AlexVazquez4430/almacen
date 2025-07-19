@@ -102,11 +102,19 @@ class Database {
                     pilot_id INTEGER,
                     ticket_number VARCHAR(50) NOT NULL,
                     description TEXT,
+                    ticket_date DATE DEFAULT (date('now')),
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (plane_id) REFERENCES planes(id),
                     FOREIGN KEY (pilot_id) REFERENCES pilots(id)
                 )
             ");
+
+            // Add ticket_date column to existing tickets table if it doesn't exist
+            try {
+                $this->db->exec("ALTER TABLE tickets ADD COLUMN ticket_date DATE DEFAULT (date('now'))");
+            } catch(PDOException $e) {
+                // Column already exists, ignore error
+            }
 
             // Ticket items (products used in each ticket)
             $this->db->exec("

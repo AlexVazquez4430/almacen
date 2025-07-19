@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Date Functionality</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px; }
+        input { margin: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🗓️ Test Date Functionality for Tickets</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Test Date Field Default Value</h3>
+        <p>The date field should default to today's date when creating a new ticket.</p>
+        <label for="testDateField">Test Date Field:</label>
+        <input type="date" id="testDateField">
+        <button onclick="setTodayDate()">Set Today's Date</button>
+        <div id="date-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Test API with Date</h3>
+        <p>Test creating a ticket with a specific date.</p>
+        <input type="date" id="apiTestDate" value="">
+        <input type="text" id="apiTestTicketNumber" placeholder="Test Ticket Number" value="TEST-001">
+        <button onclick="testCreateTicketWithDate()">Test Create Ticket with Date</button>
+        <div id="api-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 3: Test Date Display in Table</h3>
+        <p>Test that tickets display the correct date in the table.</p>
+        <button onclick="testTicketDateDisplay()">Test Date Display</button>
+        <div id="display-test-result"></div>
+    </div>
+
+    <script>
+        function setTodayDate() {
+            const dateField = document.getElementById('testDateField');
+            const today = new Date().toISOString().split('T')[0];
+            dateField.value = today;
+            
+            const result = document.getElementById('date-test-result');
+            result.innerHTML = `<div class="success">✅ Date set to: ${today}</div>`;
+        }
+        
+        async function testCreateTicketWithDate() {
+            const dateValue = document.getElementById('apiTestDate').value;
+            const ticketNumber = document.getElementById('apiTestTicketNumber').value;
+            const result = document.getElementById('api-test-result');
+            
+            if (!dateValue) {
+                result.innerHTML = '<div class="error">❌ Please select a date first</div>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="info">🔄 Testing API call...</div>';
+            
+            try {
+                // First, get available planes and pilots
+                const planesResponse = await fetch('api/planes.php');
+                const planes = await planesResponse.json();
+                
+                const pilotsResponse = await fetch('api/pilots.php');
+                const pilots = await pilotsResponse.json();
+                
+                if (!planes || planes.length === 0) {
+                    result.innerHTML = '<div class="error">❌ No planes available for testing</div>';
+                    return;
+                }
+                
+                if (!pilots || pilots.length === 0) {
+                    result.innerHTML = '<div class="error">❌ No pilots available for testing</div>';
+                    return;
+                }
+                
+                // Create test ticket with date
+                const testTicketData = {
+                    plane_id: planes[0].id,
+                    pilot_ids: [pilots[0].id],
+                    doctor_ids: [],
+                    ticket_number: ticketNumber,
+                    description: 'Test ticket with custom date',
+                    ticket_date: dateValue
+                };
+                
+                const response = await fetch('api/tickets.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testTicketData)
+                });
+                
+                const apiResult = await response.json();
+                
+                if (apiResult.success) {
+                    result.innerHTML = `<div class="success">✅ Ticket created successfully with date: ${dateValue}</div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ API Error: ${JSON.stringify(apiResult)}</div>`;
+                }
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testTicketDateDisplay() {
+            const result = document.getElementById('display-test-result');
+            result.innerHTML = '<div class="info">🔄 Testing date display...</div>';
+            
+            try {
+                const response = await fetch('api/tickets.php');
+                const tickets = await response.json();
+                
+                if (tickets && tickets.length > 0) {
+                    let html = '<div class="success">✅ Tickets found:</div>';
+                    
+                    tickets.slice(0, 3).forEach(ticket => {
+                        const displayDate = ticket.ticket_date 
+                            ? new Date(ticket.ticket_date).toLocaleDateString()
+                            : new Date(ticket.created_at).toLocaleDateString();
+                        
+                        html += `<div class="info">📋 Ticket ${ticket.ticket_number}: Date = ${displayDate}</div>`;
+                        html += `<div style="margin-left: 20px;">Raw ticket_date: ${ticket.ticket_date || 'null'}</div>`;
+                        html += `<div style="margin-left: 20px;">Raw created_at: ${ticket.created_at}</div>`;
+                    });
+                    
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<div class="error">❌ No tickets found</div>';
+                }
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Set today's date on load
+        window.onload = () => {
+            setTodayDate();
+            document.getElementById('apiTestDate').value = new Date().toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>

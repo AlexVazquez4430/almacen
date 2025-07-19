@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS ticket_doctors (
 -- Update products table to include price
 -- ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00;
 
+-- Add ticket_date column to tickets table
+-- ALTER TABLE tickets ADD COLUMN ticket_date DATE DEFAULT (date('now'));
+
 -- Remove pilot_id column from tickets table (now using junction table)
 -- The pilot_id column in tickets table is deprecated in favor of the many-to-many relationship
 

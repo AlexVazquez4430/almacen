@@ -173,11 +173,12 @@ try {
                 $db->beginTransaction();
 
                 // Create the ticket (remove pilot_id from main table)
-                $stmt = $db->prepare("INSERT INTO tickets (plane_id, ticket_number, description) VALUES (?, ?, ?)");
+                $stmt = $db->prepare("INSERT INTO tickets (plane_id, ticket_number, description, ticket_date) VALUES (?, ?, ?, ?)");
                 $stmt->execute([
                     $data['plane_id'],
                     $data['ticket_number'],
-                    $data['description'] ?? ''
+                    $data['description'] ?? '',
+                    $data['ticket_date'] ?? date('Y-m-d')
                 ]);
 
                 $ticketId = $db->lastInsertId();
@@ -221,11 +222,12 @@ try {
                 $db->beginTransaction();
 
                 // Update the main ticket information
-                $stmt = $db->prepare("UPDATE tickets SET plane_id = ?, ticket_number = ?, description = ? WHERE id = ?");
+                $stmt = $db->prepare("UPDATE tickets SET plane_id = ?, ticket_number = ?, description = ?, ticket_date = ? WHERE id = ?");
                 $stmt->execute([
                     $data['plane_id'],
                     $data['ticket_number'],
                     $data['description'] ?? '',
+                    $data['ticket_date'] ?? date('Y-m-d'),
                     $data['id']
                 ]);
 

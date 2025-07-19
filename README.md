@@ -32,12 +32,14 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Delete**: Remove planes from the system
 - ✅ **Stock Management**: Existing functionality preserved
 
-### 3. Tickets CRUD with Pilot Assignment
+### 3. Tickets CRUD with Pilot Assignment and Date Management
 - ✅ **Create**: Create new tickets with plane and pilot assignment
 - ✅ **Read**: View all tickets with plane and pilot information
 - ✅ **Update**: Edit ticket details including reassigning planes/pilots
 - ✅ **Delete**: Remove tickets from the system
 - ✅ **Pilot Field**: Added pilot assignment to each ticket
+- ✅ **Date Management**: Select ticket date (defaults to today)
+- ✅ **Date Editing**: Modify ticket date when editing existing tickets
 
 ### 4. Pilots CRUD (New Entity - Simplified)
 - ✅ **Create**: Add new pilots with name only

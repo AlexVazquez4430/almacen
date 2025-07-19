@@ -101,6 +101,8 @@ class WarehouseApp {
                 await this.loadPlanesForTickets();
                 await this.loadPilotsForTickets();
                 await this.loadDoctorsForTickets();
+                // Set today's date as default for new tickets
+                this.setDefaultTicketDate();
                 break;
             case 'pilots':
                 await this.loadPilots();
@@ -108,6 +110,13 @@ class WarehouseApp {
             case 'doctors':
                 await this.loadDoctors();
                 break;
+        }
+    }
+
+    setDefaultTicketDate() {
+        const ticketDateEl = document.getElementById('ticketDate');
+        if (ticketDateEl && !ticketDateEl.value) {
+            ticketDateEl.value = new Date().toISOString().split('T')[0];
         }
     }
 
@@ -411,7 +420,10 @@ class WarehouseApp {
             tickets.forEach((ticket, index) => {
                 console.log(`🎫 Processing ticket ${index + 1}:`, ticket);
                 const row = tbody.insertRow();
-                const date = new Date(ticket.created_at).toLocaleDateString();
+                // Use ticket_date if available, otherwise fall back to created_at
+                const displayDate = ticket.ticket_date
+                    ? new Date(ticket.ticket_date).toLocaleDateString()
+                    : new Date(ticket.created_at).toLocaleDateString();
                 const totalCost = parseFloat(ticket.total_cost || 0);
 
                 // Format pilots
@@ -435,7 +447,7 @@ class WarehouseApp {
                     <td class="pilots-list">${pilotsHtml}</td>
                     <td class="doctors-list">${doctorsHtml}</td>
                     <td>${ticket.description || ''}</td>
-                    <td>${date}</td>
+                    <td>${displayDate}</td>
                     <td class="cost-cell">$${totalCost.toFixed(2)}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="console.log('Button clicked for ticket ${ticket.id}'); app.editTicket(${ticket.id})">Editar</button>
@@ -462,6 +474,7 @@ class WarehouseApp {
         const planeId = document.getElementById('ticketPlane').value;
         const ticketNumber = document.getElementById('ticketNumber').value;
         const description = document.getElementById('ticketDescription').value;
+        const ticketDate = document.getElementById('ticketDate').value;
 
         // Get selected pilots
         const selectedPilots = [];
@@ -475,7 +488,7 @@ class WarehouseApp {
             selectedDoctors.push(parseInt(checkbox.value));
         });
 
-        if (!planeId || !ticketNumber) {
+        if (!planeId || !ticketNumber || !ticketDate) {
             alert('Please fill in all required fields');
             return;
         }
@@ -493,7 +506,8 @@ class WarehouseApp {
                 pilot_ids: selectedPilots,
                 doctor_ids: selectedDoctors,
                 ticket_number: ticketNumber,
-                description: description
+                description: description,
+                ticket_date: ticketDate
             };
 
             if (isEditing) {
@@ -620,6 +634,18 @@ class WarehouseApp {
                     console.error('❌ Error setting ticketDescription:', error);
                 }
 
+                try {
+                    const ticketDateEl = document.getElementById('ticketDate');
+                    if (ticketDateEl) {
+                        ticketDateEl.value = ticket.ticket_date || '';
+                        console.log('✅ Set ticketDate');
+                    } else {
+                        console.log('❌ ticketDate element not found');
+                    }
+                } catch (error) {
+                    console.error('❌ Error setting ticketDate:', error);
+                }
+
                 // Clear all pilot checkboxes first
                 console.log('🧑‍✈️ Clearing pilot checkboxes...');
                 try {
@@ -731,6 +757,9 @@ class WarehouseApp {
         document.getElementById('ticketFormTitle').textContent = 'Crear Ticket';
         document.getElementById('ticketSubmitBtn').textContent = 'Crear Ticket';
         document.getElementById('ticketCancelBtn').style.display = 'none';
+
+        // Set today's date as default
+        document.getElementById('ticketDate').value = new Date().toISOString().split('T')[0];
 
         // Uncheck all checkboxes
         document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => cb.checked = false);
