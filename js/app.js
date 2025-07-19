@@ -18,6 +18,97 @@ class WarehouseApp {
 
         this.bindEvents();
         this.loadData();
+        this.initMobileOptimizations();
+    }
+
+    initMobileOptimizations() {
+        // Add touch-friendly interactions
+        this.addTouchSupport();
+
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.handleOrientationChange();
+            }, 100);
+        });
+
+        // Prevent zoom on double tap for buttons
+        this.preventDoubleTabZoom();
+
+        // Add swipe support for navigation
+        this.addSwipeNavigation();
+    }
+
+    addTouchSupport() {
+        // Add touch feedback to buttons
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('nav-btn')) {
+                e.target.style.transform = 'scale(0.95)';
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('nav-btn')) {
+                setTimeout(() => {
+                    e.target.style.transform = '';
+                }, 150);
+            }
+        });
+    }
+
+    preventDoubleTabZoom() {
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    }
+
+    addSwipeNavigation() {
+        let startX = 0;
+        let startY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!startX || !startY) return;
+
+            const diffX = startX - e.touches[0].clientX;
+            const diffY = startY - e.touches[0].clientY;
+
+            // Only handle horizontal swipes
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                const sections = ['warehouse', 'planes', 'tickets', 'pilots', 'doctors'];
+                const currentIndex = sections.indexOf(this.currentSection);
+
+                if (diffX > 0 && currentIndex < sections.length - 1) {
+                    // Swipe left - next section
+                    this.showSection(sections[currentIndex + 1]);
+                } else if (diffX < 0 && currentIndex > 0) {
+                    // Swipe right - previous section
+                    this.showSection(sections[currentIndex - 1]);
+                }
+            }
+
+            startX = 0;
+            startY = 0;
+        });
+    }
+
+    handleOrientationChange() {
+        // Refresh table layouts after orientation change
+        const tables = document.querySelectorAll('table');
+        tables.forEach(table => {
+            table.style.display = 'none';
+            table.offsetHeight; // Force reflow
+            table.style.display = '';
+        });
     }
 
     async checkAuthentication() {
@@ -1531,3 +1622,97 @@ async function logout() {
 
 // Initialize the app
 const app = new WarehouseApp();
+
+// Register service worker for PWA functionality
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('SW registered: ', registration);
+
+                // Check for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New content is available, prompt user to refresh
+                            if (confirm('Nueva versión disponible. ¿Desea actualizar?')) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            })
+            .catch((registrationError) => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
+}
+
+// Add install prompt for PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+
+    // Show install button or banner
+    showInstallPromotion();
+});
+
+function showInstallPromotion() {
+    // Create install button if it doesn't exist
+    if (!document.getElementById('installBtn')) {
+        const installBtn = document.createElement('button');
+        installBtn.id = 'installBtn';
+        installBtn.textContent = '📱 Instalar App';
+        installBtn.className = 'btn-primary';
+        installBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            border-radius: 25px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        `;
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installBtn.remove();
+            }
+        });
+
+        document.body.appendChild(installBtn);
+
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            if (installBtn.parentNode) {
+                installBtn.style.opacity = '0.7';
+            }
+        }, 10000);
+    }
+}
+
+// Handle app installation
+window.addEventListener('appinstalled', (evt) => {
+    console.log('App was installed');
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.remove();
+    }
+});
+
+// Global functions for HTML onclick handlers
+function showSection(section) {
+    app.showSection(section);
+}
+
+async function logout() {
+    await app.logout();
+}

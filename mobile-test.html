@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mobile Test - Sistema de Almacén</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .test-container {
+            padding: 20px;
+            max-width: 100%;
+        }
+        
+        .test-section {
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .device-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .touch-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .touch-test button {
+            min-height: 48px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #3498db;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .touch-test button:active {
+            transform: scale(0.95);
+            background: #2980b9;
+        }
+        
+        .form-test {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-test input,
+        .form-test select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 16px;
+            min-height: 48px;
+        }
+        
+        .table-test {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-test table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+        }
+        
+        .table-test th,
+        .table-test td {
+            padding: 12px 8px;
+            border: 1px solid #e9ecef;
+            text-align: left;
+        }
+        
+        .table-test th {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+        
+        .orientation-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .swipe-demo {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px;">
+            📱 Mobile Responsiveness Test
+        </h1>
+        
+        <div class="device-info" id="deviceInfo">
+            <strong>Device Information:</strong><br>
+            Screen: <span id="screenSize"></span><br>
+            Viewport: <span id="viewportSize"></span><br>
+            Device Pixel Ratio: <span id="pixelRatio"></span><br>
+            Touch Support: <span id="touchSupport"></span><br>
+            Orientation: <span id="orientation"></span>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎯 Touch Target Test</h3>
+            <p>All buttons should be at least 44px tall for easy tapping:</p>
+            <div class="touch-test">
+                <button onclick="showAlert('Button 1')">Button 1</button>
+                <button onclick="showAlert('Button 2')">Button 2</button>
+                <button onclick="showAlert('Button 3')">Button 3</button>
+                <button onclick="showAlert('Button 4')">Button 4</button>
+                <button onclick="showAlert('Small')" class="btn-small">Small</button>
+                <button onclick="showAlert('Large')" style="min-height: 60px;">Large</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Form Input Test</h3>
+            <p>Forms should be easy to use on mobile:</p>
+            <div class="form-test">
+                <input type="text" placeholder="Text input (should not zoom on iOS)">
+                <input type="email" placeholder="Email input">
+                <input type="number" placeholder="Number input">
+                <input type="date" value="">
+                <select>
+                    <option>Select option 1</option>
+                    <option>Select option 2</option>
+                    <option>Select option 3</option>
+                </select>
+                <button type="button" onclick="showAlert('Form submitted!')">Submit Form</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Table Scroll Test</h3>
+            <p>Tables should scroll horizontally on small screens:</p>
+            <div class="table-test">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Sample Product 1</td>
+                            <td>This is a long description that tests horizontal scrolling</td>
+                            <td>$99.99</td>
+                            <td>50</td>
+                            <td>Electronics</td>
+                            <td>
+                                <button class="btn-small btn-primary">Edit</button>
+                                <button class="btn-small btn-danger">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Sample Product 2</td>
+                            <td>Another product with a detailed description</td>
+                            <td>$149.99</td>
+                            <td>25</td>
+                            <td>Tools</td>
+                            <td>
+                                <button class="btn-small btn-primary">Edit</button>
+                                <button class="btn-small btn-danger">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔄 Orientation Test</h3>
+            <div class="orientation-info" id="orientationTest">
+                Rotate your device to test orientation changes
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👆 Swipe Navigation Test</h3>
+            <div class="swipe-demo" id="swipeDemo">
+                <h4>Swipe left or right on this area</h4>
+                <p>Current section: <span id="currentSection">warehouse</span></p>
+                <p>Try swiping to navigate between sections</p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎨 Navigation Test</h3>
+            <p>Navigation should stack on mobile:</p>
+            <nav style="margin-top: 15px;">
+                <button class="nav-btn active">Warehouse</button>
+                <button class="nav-btn">Planes</button>
+                <button class="nav-btn">Tickets</button>
+                <button class="nav-btn">Pilots</button>
+                <button class="nav-btn">Doctors</button>
+            </nav>
+        </div>
+        
+        <div class="test-section">
+            <h3>✅ Test Results</h3>
+            <div id="testResults">
+                <p>✅ Viewport meta tag: Present</p>
+                <p>✅ Touch-friendly buttons: <span id="buttonSizeTest"></span></p>
+                <p>✅ Font size (16px+): <span id="fontSizeTest"></span></p>
+                <p>✅ Horizontal scroll: <span id="scrollTest"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAlert(message) {
+            alert(`Touched: ${message}`);
+        }
+        
+        function updateDeviceInfo() {
+            document.getElementById('screenSize').textContent = 
+                `${screen.width} x ${screen.height}`;
+            document.getElementById('viewportSize').textContent = 
+                `${window.innerWidth} x ${window.innerHeight}`;
+            document.getElementById('pixelRatio').textContent = 
+                window.devicePixelRatio || 1;
+            document.getElementById('touchSupport').textContent = 
+                'ontouchstart' in window ? 'Yes' : 'No';
+            document.getElementById('orientation').textContent = 
+                window.innerWidth > window.innerHeight ? 'Landscape' : 'Portrait';
+        }
+        
+        function runTests() {
+            // Test button sizes
+            const buttons = document.querySelectorAll('button');
+            let minHeight = Math.min(...Array.from(buttons).map(btn => btn.offsetHeight));
+            document.getElementById('buttonSizeTest').textContent = 
+                minHeight >= 44 ? `✅ ${minHeight}px` : `❌ ${minHeight}px (too small)`;
+            
+            // Test font size
+            const bodyFontSize = parseInt(window.getComputedStyle(document.body).fontSize);
+            document.getElementById('fontSizeTest').textContent = 
+                bodyFontSize >= 16 ? `✅ ${bodyFontSize}px` : `❌ ${bodyFontSize}px (too small)`;
+            
+            // Test horizontal scroll
+            const tableContainer = document.querySelector('.table-test');
+            const hasScroll = tableContainer.scrollWidth > tableContainer.clientWidth;
+            document.getElementById('scrollTest').textContent = 
+                hasScroll ? '✅ Working' : '❌ Not working';
+        }
+        
+        // Swipe demo
+        let startX = 0;
+        const swipeDemo = document.getElementById('swipeDemo');
+        const sections = ['warehouse', 'planes', 'tickets', 'pilots', 'doctors'];
+        let currentSectionIndex = 0;
+        
+        swipeDemo.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+        
+        swipeDemo.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        });
+        
+        swipeDemo.addEventListener('touchend', (e) => {
+            if (!startX) return;
+            
+            const endX = e.changedTouches[0].clientX;
+            const diffX = startX - endX;
+            
+            if (Math.abs(diffX) > 50) {
+                if (diffX > 0 && currentSectionIndex < sections.length - 1) {
+                    currentSectionIndex++;
+                } else if (diffX < 0 && currentSectionIndex > 0) {
+                    currentSectionIndex--;
+                }
+                
+                document.getElementById('currentSection').textContent = sections[currentSectionIndex];
+                swipeDemo.style.background = `linear-gradient(45deg, hsl(${currentSectionIndex * 60}, 70%, 60%), hsl(${currentSectionIndex * 60 + 30}, 70%, 50%))`;
+            }
+            
+            startX = 0;
+        });
+        
+        // Update orientation info
+        function updateOrientation() {
+            const orientation = window.innerWidth > window.innerHeight ? 'Landscape' : 'Portrait';
+            document.getElementById('orientationTest').innerHTML = 
+                `Current orientation: <strong>${orientation}</strong><br>
+                 Screen: ${window.innerWidth} x ${window.innerHeight}`;
+        }
+        
+        // Event listeners
+        window.addEventListener('load', () => {
+            updateDeviceInfo();
+            runTests();
+            updateOrientation();
+            
+            // Set today's date
+            document.querySelector('input[type="date"]').value = 
+                new Date().toISOString().split('T')[0];
+        });
+        
+        window.addEventListener('resize', () => {
+            updateDeviceInfo();
+            updateOrientation();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                updateDeviceInfo();
+                updateOrientation();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
