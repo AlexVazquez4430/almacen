@@ -78,7 +78,7 @@
                 <form id="planeForm">
                     <input type="hidden" id="planeId">
                     <input type="text" id="planeName" placeholder="Nombre del avión" required>
-                    <input type="text" id="planeDescription" placeholder="Descripcion">
+                    <input type="text" id="planeModel" placeholder="Modelo del avión" required>
                     <button type="submit" id="planeSubmitBtn">Añadir Avión</button>
                     <button type="button" id="planeCancelBtn" onclick="app.cancelPlaneEdit()" style="display: none;">Cancelar</button>
                 </form>
@@ -117,11 +117,6 @@
                     </select>
 
                     <!-- Pilots and doctors removed - simplified ticket structure -->
-
-                    <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
-                    <input type="text" id="ticketDescription" placeholder="Descripcion">
-                    <label for="ticketDate">Fecha del Ticket:</label>
-                    <input type="date" id="ticketDate" required>
 
                     <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
                     <input type="text" id="ticketDescription" placeholder="Descripcion">

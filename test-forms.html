@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Testing - Quick Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { margin: 5px; padding: 10px 20px; }
+        input, select { margin: 5px; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Form Testing & Quick Fix</h1>
+    
+    <div class="info">
+        <h3>📊 Current Issues Identified:</h3>
+        <ul>
+            <li>✅ Duplicate inputs in ticket form - <strong>FIXED</strong></li>
+            <li>✅ Plane form field mismatch - <strong>FIXED</strong></li>
+            <li>🔄 Authentication may be blocking API calls</li>
+            <li>🔄 Need to verify form submission works</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Product Creation</h3>
+        <form id="testProductForm">
+            <input type="text" id="testProductName" placeholder="Product Name" required>
+            <input type="text" id="testProductDescription" placeholder="Description">
+            <input type="number" id="testProductPrice" placeholder="Price" step="0.01" min="0" required>
+            <input type="number" id="testProductStock" placeholder="Stock" min="0" required>
+            <button type="submit">Create Product</button>
+        </form>
+        <div id="productResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Plane Creation</h3>
+        <form id="testPlaneForm">
+            <input type="text" id="testPlaneName" placeholder="Plane Name" required>
+            <input type="text" id="testPlaneModel" placeholder="Plane Model" required>
+            <button type="submit">Create Plane</button>
+        </form>
+        <div id="planeResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Doctor Creation</h3>
+        <form id="testDoctorForm">
+            <input type="text" id="testDoctorName" placeholder="Doctor Name" required>
+            <button type="submit">Create Doctor</button>
+        </form>
+        <div id="doctorResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Ticket Creation</h3>
+        <form id="testTicketForm">
+            <input type="text" id="testTicketNumber" placeholder="Ticket Number" required>
+            <input type="text" id="testTicketDescription" placeholder="Description">
+            <input type="date" id="testTicketDate" required>
+            <button type="submit">Create Ticket</button>
+        </form>
+        <div id="ticketResult"></div>
+    </div>
+
+    <script>
+        // Simple test functions
+        async function testAPI(endpoint, data, resultDiv) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                resultDiv.innerHTML = `<div class="${result.success ? 'success' : 'error'}">
+                    ${result.success ? 'SUCCESS' : 'ERROR'}: ${result.message || JSON.stringify(result)}
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">ERROR: ${error.message}</div>`;
+            }
+        }
+
+        document.getElementById('testProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('testProductName').value,
+                description: document.getElementById('testProductDescription').value,
+                price: parseFloat(document.getElementById('testProductPrice').value),
+                stock: parseInt(document.getElementById('testProductStock').value)
+            };
+            testAPI('api/products.php', data, document.getElementById('productResult'));
+        });
+
+        document.getElementById('testPlaneForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('testPlaneName').value,
+                model: document.getElementById('testPlaneModel').value
+            };
+            testAPI('api/planes.php', data, document.getElementById('planeResult'));
+        });
+
+        document.getElementById('testDoctorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('testDoctorName').value
+            };
+            testAPI('api/doctors.php', data, document.getElementById('doctorResult'));
+        });
+
+        document.getElementById('testTicketForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = {
+                ticket_number: document.getElementById('testTicketNumber').value,
+                description: document.getElementById('testTicketDescription').value,
+                ticket_date: document.getElementById('testTicketDate').value
+            };
+            testAPI('api/tickets.php', data, document.getElementById('ticketResult'));
+        });
+    </script>
+</body>
+</html>
