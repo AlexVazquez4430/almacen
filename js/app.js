@@ -192,6 +192,7 @@ class WarehouseApp {
                 await this.loadPlanesForTickets();
                 await this.loadPilotsForTickets();
                 await this.loadDoctorsForTickets();
+                await this.loadProductsForTickets();
                 // Set today's date as default for new tickets
                 this.setDefaultTicketDate();
                 break;
@@ -251,6 +252,11 @@ class WarehouseApp {
                     // Reset form and reload data
                     this.cancelProductEdit();
                     await this.loadProducts();
+
+                    // Also refresh products in tickets section if it's currently active
+                    if (this.currentSection === 'tickets') {
+                        await this.loadProductsForTickets();
+                    }
                 } else {
                     alert('Error al guardar el producto: ' + (result.message || 'Error desconocido'));
                 }
@@ -335,6 +341,11 @@ class WarehouseApp {
                     if (result.success) {
                         alert('Producto eliminado exitosamente');
                         await this.loadProducts();
+
+                        // Also refresh products in tickets section if it's currently active
+                        if (this.currentSection === 'tickets') {
+                            await this.loadProductsForTickets();
+                        }
                     } else {
                         alert('Error al eliminar el producto: ' + (result.message || 'Error desconocido'));
                     }
@@ -364,6 +375,11 @@ class WarehouseApp {
                     if (result.success) {
                         alert('Stock actualizado exitosamente');
                         await this.loadProducts();
+
+                        // Also refresh products in tickets section if it's currently active
+                        if (this.currentSection === 'tickets') {
+                            await this.loadProductsForTickets();
+                        }
                     } else {
                         alert('Error al actualizar el stock: ' + (result.message || 'Error desconocido'));
                     }
@@ -676,19 +692,32 @@ class WarehouseApp {
             if (result.success) {
                 // Reset form
                 this.cancelTicketEdit();
-                this.loadTickets();
+                await this.loadTickets();
 
                 if (isEditing) {
-                    alert('Se ha Actualizado el ticket correctamente');
+                    alert('Se ha actualizado el ticket correctamente');
                 } else {
                     alert('Se ha creado el ticket correctamente');
                 }
             } else {
-                alert('Error guardando el ticket: ' + (result.error || 'Error desconocido'));
+                console.error('Ticket creation/update failed:', result);
+                let errorMessage = 'Error guardando el ticket: ';
+
+                if (result.error) {
+                    if (result.error.includes('ticket_date')) {
+                        errorMessage += 'Error de base de datos. Por favor, contacte al administrador para actualizar la estructura de la base de datos.';
+                    } else {
+                        errorMessage += result.error;
+                    }
+                } else {
+                    errorMessage += 'Error desconocido';
+                }
+
+                alert(errorMessage);
             }
         } catch (error) {
             console.error('Error guardando el ticket:', error);
-            alert('Error guardando el ticket: ' + error.message);
+            alert('Error de conexión al guardar el ticket: ' + error.message);
         }
     }
 
@@ -1241,6 +1270,34 @@ class WarehouseApp {
             });
         } catch (error) {
             console.error('Error loading doctors for tickets:', error);
+        }
+    }
+
+    // Load products for ticket management
+    async loadProductsForTickets() {
+        try {
+            const response = await fetch('api/products.php');
+            const products = await response.json();
+
+            // Store products for ticket item management
+            this.availableProducts = products;
+
+            // If there's a product selection area in tickets, populate it
+            const productContainer = document.getElementById('ticketProducts');
+            if (productContainer) {
+                productContainer.innerHTML = '';
+
+                products.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'product-item';
+                    div.innerHTML = `
+                        <span>${product.name} - $${parseFloat(product.price).toFixed(2)} (Stock: ${product.total_stock})</span>
+                    `;
+                    productContainer.appendChild(div);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading products for tickets:', error);
         }
     }
 
