@@ -153,8 +153,8 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - No manual database setup required
 
 ### Default Admin User (Auto-created)
-- **Username**: admin
-- **Password**: admin (change immediately after first login)
+- **Username**: administrador
+- **Password**: IngresoControl$Almacen? (change immediately after first login)
 
 ### Sample Data (Auto-created)
 **Pilots:**

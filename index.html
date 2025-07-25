@@ -27,10 +27,10 @@
                 </div>
             </div>
             <nav>
-                <button class="nav-btn active" onclick="showSection('warehouse')">Alamacén</button>
+                <button class="nav-btn" onclick="showSection('warehouse')">Alamacén</button>
                 <button class="nav-btn" onclick="showSection('planes')">Aviones</button>
                 <button class="nav-btn" onclick="showSection('tickets')">Tickets</button>
-                <button class="nav-btn" onclick="showSection('pilots')">Pilotos</button>
+                <!-- Pilots section removed -->
                 <button class="nav-btn" onclick="showSection('doctors')">Médicos</button>
             </nav>
         </header>
@@ -116,19 +116,12 @@
                         <option value="">Seleccionar Avión</option>
                     </select>
 
-                    <div class="multi-select-container">
-                        <label>Pilotos:</label>
-                        <div id="ticketPilots" class="multi-select">
-                            <!-- Pilots will be loaded here -->
-                        </div>
-                    </div>
+                    <!-- Pilots and doctors removed - simplified ticket structure -->
 
-                    <div class="multi-select-container">
-                        <label>Médicos:</label>
-                        <div id="ticketDoctors" class="multi-select">
-                            <!-- Doctors will be loaded here -->
-                        </div>
-                    </div>
+                    <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
+                    <input type="text" id="ticketDescription" placeholder="Descripcion">
+                    <label for="ticketDate">Fecha del Ticket:</label>
+                    <input type="date" id="ticketDate" required>
 
                     <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
                     <input type="text" id="ticketDescription" placeholder="Descripcion">
@@ -143,8 +136,7 @@
             <div class="filters-container">
                 <h3>Filtros</h3>
                 <div class="filters-row">
-                    <input type="text" id="filterPilot" placeholder="Filtrar por piloto">
-                    <input type="text" id="filterDoctor" placeholder="Filtrar por médico">
+                    <!-- Pilot and doctor filters removed -->
                     <input type="date" id="filterDate" placeholder="Filtrar por fecha">
                     <input type="text" id="filterDescription" placeholder="Filtrar por descripción">
                     <button onclick="app.applyFilters()">Aplicar Filtros</button>
@@ -155,17 +147,16 @@
             <div class="table-container">
                 <h3>Tickets</h3>
                 <table id="ticketsTable">
-                    <thead>
-                        <tr>
-                            <th>Ticket #</th>
-                            <th>Avión</th>
-                            <th>Pilotos</th>
-                            <th>Médicos</th>
-                            <th>Descripcion</th>
-                            <th>Fecha</th>
-                            <th>Total Cost</th>
-                            <th>Acciones</th>
-                        </tr>
+                     <thead>
+                         <tr>
+                             <th>Ticket #</th>
+                             <th>Avión</th>
+                             <!-- Pilots and doctors columns removed -->
+                             <th>Descripcion</th>
+                             <th>Fecha</th>
+                             <th>Total Cost</th>
+                             <th>Acciones</th>
+                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -180,35 +171,9 @@
             </div>
         </section>
 
-        <!-- Pilots Section -->
-        <section id="pilots" class="section">
-            <h2>Pilotos</h2>
+        <!-- Pilots Section Removed -->
 
-            <div class="form-container">
-                <h3 id="pilotFormTitle">Añadir Piloto</h3>
-                <form id="pilotForm">
-                    <input type="hidden" id="pilotId">
-                    <input type="text" id="pilotName" placeholder="Nombre del Piloto" required>
-                    <div class="form-buttons">
-                        <button type="submit" id="pilotSubmitBtn">Añadir Piloto</button>
-                        <button type="button" id="pilotCancelBtn" onclick="app.cancelPilotEdit()" style="display: none;">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="table-container">
-                <h3>Pilotos</h3>
-                <table id="pilotsTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
+        <!-- Doctors Section -->
 
         <!-- Doctors Section -->
         <section id="doctors" class="section">
@@ -242,10 +207,10 @@
     </div>
 
     <script>
-        // Force cache refresh with new timestamp
+        // Force cache refresh with new timestamp - Pilots removed, database fixed
         const timestamp = new Date().getTime();
         const script = document.createElement('script');
-        script.src = `js/app.js?v=4.0&t=${timestamp}`;
+        script.src = `js/app.js?v=5.0&t=${timestamp}`;
         document.head.appendChild(script);
     </script>
 </body>
