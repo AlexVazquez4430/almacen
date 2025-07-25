@@ -220,7 +220,7 @@ class WarehouseApp {
         const id = document.getElementById('productId').value;
 
         const data = { name, description, price, total_stock: stock };
-        
+
         try {
             let response;
             if (id) {
@@ -242,11 +242,25 @@ class WarehouseApp {
             }
 
             if (response.ok) {
-                this.cancelProductEdit();
-                this.loadProducts();
+                const result = await response.json();
+                if (result.success || result.id) {
+                    // Show success message
+                    const action = id ? 'actualizado' : 'añadido';
+                    alert(`Producto ${action} exitosamente`);
+
+                    // Reset form and reload data
+                    this.cancelProductEdit();
+                    await this.loadProducts();
+                } else {
+                    alert('Error al guardar el producto: ' + (result.message || 'Error desconocido'));
+                }
+            } else {
+                const errorText = await response.text();
+                alert('Error al guardar el producto: ' + errorText);
             }
         } catch (error) {
             console.error('Error saving product:', error);
+            alert('Error de conexión al guardar el producto');
         }
     }
 
@@ -317,17 +331,27 @@ class WarehouseApp {
                 });
 
                 if (response.ok) {
-                    this.loadProducts();
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Producto eliminado exitosamente');
+                        await this.loadProducts();
+                    } else {
+                        alert('Error al eliminar el producto: ' + (result.message || 'Error desconocido'));
+                    }
+                } else {
+                    const errorText = await response.text();
+                    alert('Error al eliminar el producto: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
+                alert('Error de conexión al eliminar el producto');
             }
         }
     }
 
     async updateStock(productId) {
-        const newStock = prompt('Enter new stock quantity:');
-        if (newStock !== null && !isNaN(newStock)) {
+        const newStock = prompt('Ingrese la nueva cantidad de stock:');
+        if (newStock !== null && !isNaN(newStock) && newStock.trim() !== '') {
             try {
                 const response = await fetch('api/products.php', {
                     method: 'PUT',
@@ -336,13 +360,27 @@ class WarehouseApp {
                 });
 
                 if (response.ok) {
-                    this.loadProducts();
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Stock actualizado exitosamente');
+                        await this.loadProducts();
+                    } else {
+                        alert('Error al actualizar el stock: ' + (result.message || 'Error desconocido'));
+                    }
+                } else {
+                    const errorText = await response.text();
+                    alert('Error al actualizar el stock: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error updating stock:', error);
+                alert('Error de conexión al actualizar el stock');
             }
+        } else if (newStock !== null) {
+            alert('Por favor ingrese un número válido');
         }
     }
+
+    // PLANES CRUD
 
     // PLANES CRUD
     async savePlane() {
@@ -351,7 +389,7 @@ class WarehouseApp {
         const id = document.getElementById('planeId').value;
 
         const data = { name, description };
-        
+
         try {
             let response;
             if (id) {
@@ -372,11 +410,23 @@ class WarehouseApp {
             }
 
             if (response.ok) {
-                this.cancelPlaneEdit();
-                this.loadPlanes();
+                const result = await response.json();
+                if (result.success || result.id) {
+                    const action = id ? 'actualizado' : 'añadido';
+                    alert(`Avión ${action} exitosamente`);
+
+                    this.cancelPlaneEdit();
+                    await this.loadPlanes();
+                } else {
+                    alert('Error al guardar el avión: ' + (result.message || 'Error desconocido'));
+                }
+            } else {
+                const errorText = await response.text();
+                alert('Error al guardar el avión: ' + errorText);
             }
         } catch (error) {
             console.error('Error saving plane:', error);
+            alert('Error de conexión al guardar el avión');
         }
     }
 
@@ -443,10 +493,20 @@ class WarehouseApp {
                 });
 
                 if (response.ok) {
-                    this.loadPlanes();
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Avión eliminado exitosamente');
+                        await this.loadPlanes();
+                    } else {
+                        alert('Error al eliminar el avión: ' + (result.message || 'Error desconocido'));
+                    }
+                } else {
+                    const errorText = await response.text();
+                    alert('Error al eliminar el avión: ' + errorText);
                 }
             } catch (error) {
                 console.error('Error deleting plane:', error);
+                alert('Error de conexión al eliminar el avión');
             }
         }
     }
@@ -970,7 +1030,7 @@ class WarehouseApp {
         const name = document.getElementById('pilotName').value;
 
         if (!name.trim()) {
-            alert('Please enter a pilot name');
+            alert('Por favor ingrese el nombre del piloto');
             return;
         }
 
@@ -984,16 +1044,19 @@ class WarehouseApp {
             const result = await response.json();
 
             if (result.success) {
+                const action = id ? 'actualizado' : 'añadido';
+                alert(`Piloto ${action} exitosamente`);
+
                 document.getElementById('pilotForm').reset();
                 document.getElementById('pilotId').value = '';
                 this.cancelPilotEdit();
-                this.loadPilots();
+                await this.loadPilots();
             } else {
-                alert('Error saving pilot: ' + (result.error || 'Unknown error'));
+                alert('Error al guardar el piloto: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error saving pilot:', error);
-            alert('Error saving pilot: ' + error.message);
+            alert('Error de conexión al guardar el piloto');
         }
     }
 
@@ -1036,13 +1099,14 @@ class WarehouseApp {
                 const result = await response.json();
 
                 if (result.success) {
-                    this.loadPilots();
+                    alert('Piloto eliminado exitosamente');
+                    await this.loadPilots();
                 } else {
-                    alert('Error deleting pilot: ' + (result.error || 'Unknown error'));
+                    alert('Error al eliminar el piloto: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error deleting pilot:', error);
-                alert('Error deleting pilot: ' + error.message);
+                alert('Error de conexión al eliminar el piloto');
             }
         }
     }
@@ -1076,7 +1140,7 @@ class WarehouseApp {
         const name = document.getElementById('doctorName').value;
 
         if (!name.trim()) {
-            alert('Please enter a doctor name');
+            alert('Por favor ingrese el nombre del médico');
             return;
         }
 
@@ -1090,16 +1154,19 @@ class WarehouseApp {
             const result = await response.json();
 
             if (result.success) {
+                const action = id ? 'actualizado' : 'añadido';
+                alert(`Médico ${action} exitosamente`);
+
                 document.getElementById('doctorForm').reset();
                 document.getElementById('doctorId').value = '';
                 this.cancelDoctorEdit();
-                this.loadDoctors();
+                await this.loadDoctors();
             } else {
-                alert('Error saving doctor: ' + (result.error || 'Unknown error'));
+                alert('Error al guardar el médico: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error saving doctor:', error);
-            alert('Error saving doctor: ' + error.message);
+            alert('Error de conexión al guardar el médico');
         }
     }
 
@@ -1142,13 +1209,14 @@ class WarehouseApp {
                 const result = await response.json();
 
                 if (result.success) {
-                    this.loadDoctors();
+                    alert('Médico eliminado exitosamente');
+                    await this.loadDoctors();
                 } else {
-                    alert('Error deleting doctor: ' + (result.error || 'Unknown error'));
+                    alert('Error al eliminar el médico: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error deleting doctor:', error);
-                alert('Error deleting doctor: ' + error.message);
+                alert('Error de conexión al eliminar el médico');
             }
         }
     }
@@ -1713,6 +1781,3 @@ function showSection(section) {
     app.showSection(section);
 }
 
-async function logout() {
-    await app.logout();
-}
