@@ -22,6 +22,7 @@
                 <h1>Sistema de Almacén</h1>
                 <div class="user-info">
                     <span id="welcomeMessage">Bienvenido, <span id="currentUser">Usuario</span></span>
+                    <button id="clearCacheBtn" class="logout-btn" onclick="clearCacheAndReload()" style="background: #ff9800; margin-right: 10px;" title="Si el botón de logout no funciona, haz clic aquí">🔄 Limpiar Cache</button>
                     <button id="logoutBtn" class="logout-btn" onclick="logout()">Cerrar Sesión</button>
                 </div>
             </div>
@@ -240,6 +241,12 @@
         </section>
     </div>
 
-    <script src="js/app.js?v=2.0"></script>
+    <script>
+        // Force cache refresh
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.src = `js/app.js?v=3.1&t=${timestamp}`;
+        document.head.appendChild(script);
+    </script>
 </body>
 </html>

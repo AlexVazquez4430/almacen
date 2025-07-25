@@ -1688,6 +1688,27 @@ async function logout() {
     }
 }
 
+// Cache clearing function for troubleshooting
+function clearCacheAndReload() {
+    if (confirm('Esto limpiará la cache del navegador y recargará la página. ¿Continuar?')) {
+        // Clear various cache storages
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                names.forEach(function(name) {
+                    caches.delete(name);
+                });
+            });
+        }
+
+        // Clear localStorage and sessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Force reload with cache bypass
+        window.location.reload(true);
+    }
+}
+
 // Initialize the app
 const app = new WarehouseApp();
 
