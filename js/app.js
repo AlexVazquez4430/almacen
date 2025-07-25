@@ -4,110 +4,57 @@ class WarehouseApp {
         this.editingProduct = null;
         this.editingPlane = null;
         this.editingTicket = null;
-        this.editingPilot = null;
-        this.init();
+        this.editingDoctor = null;
     }
 
     async init() {
+        console.log('🚀 Initializing WarehouseApp...');
+        
         // Check authentication first
         const isAuthenticated = await this.checkAuthentication();
         if (!isAuthenticated) {
+            console.log('❌ User not authenticated, redirecting to login');
             window.location.href = 'login.html';
             return;
         }
 
-        this.bindEvents();
-        this.loadData();
-        this.initMobileOptimizations();
+        console.log('✅ User authenticated, proceeding with app initialization');
+
+        // Set up event listeners
+        this.setupEventListeners();
+        
+        // Load initial data
+        await this.loadData();
+        
+        // Show default section
+        this.showSection('warehouse');
+        
+        console.log('✅ WarehouseApp initialized successfully');
     }
 
-    initMobileOptimizations() {
-        // Add touch-friendly interactions
-        this.addTouchSupport();
-
-        // Handle orientation changes
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                this.handleOrientationChange();
-            }, 100);
+    setupEventListeners() {
+        // Product form
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveProduct();
         });
 
-        // Prevent zoom on double tap for buttons
-        this.preventDoubleTabZoom();
-
-        // Add swipe support for navigation
-        this.addSwipeNavigation();
-    }
-
-    addTouchSupport() {
-        // Add touch feedback to buttons
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('nav-btn')) {
-                e.target.style.transform = 'scale(0.95)';
-            }
+        // Plane form
+        document.getElementById('planeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.savePlane();
         });
 
-        document.addEventListener('touchend', (e) => {
-            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('nav-btn')) {
-                setTimeout(() => {
-                    e.target.style.transform = '';
-                }, 150);
-            }
-        });
-    }
-
-    preventDoubleTabZoom() {
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (e) => {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-    }
-
-    addSwipeNavigation() {
-        let startX = 0;
-        let startY = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
+        // Ticket form
+        document.getElementById('ticketForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createTicket();
         });
 
-        document.addEventListener('touchmove', (e) => {
-            if (!startX || !startY) return;
-
-            const diffX = startX - e.touches[0].clientX;
-            const diffY = startY - e.touches[0].clientY;
-
-            // Only handle horizontal swipes
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-                const sections = ['warehouse', 'planes', 'tickets', 'pilots', 'doctors'];
-                const currentIndex = sections.indexOf(this.currentSection);
-
-                if (diffX > 0 && currentIndex < sections.length - 1) {
-                    // Swipe left - next section
-                    this.showSection(sections[currentIndex + 1]);
-                } else if (diffX < 0 && currentIndex > 0) {
-                    // Swipe right - previous section
-                    this.showSection(sections[currentIndex - 1]);
-                }
-            }
-
-            startX = 0;
-            startY = 0;
-        });
-    }
-
-    handleOrientationChange() {
-        // Refresh table layouts after orientation change
-        const tables = document.querySelectorAll('table');
-        tables.forEach(table => {
-            table.style.display = 'none';
-            table.offsetHeight; // Force reflow
-            table.style.display = '';
+        // Doctor form
+        document.getElementById('doctorForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveDoctor();
         });
     }
 
@@ -119,54 +66,47 @@ class WarehouseApp {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    action: 'check'
+                    action: 'check_session'
                 })
             });
 
             const result = await response.json();
-
-            if (result.logged_in) {
-                // Update user info in header
-                document.getElementById('currentUser').textContent = result.username;
-                return true;
-            } else {
-                return false;
-            }
+            return result.authenticated === true;
         } catch (error) {
-            console.error('Authentication check error:', error);
+            console.error('Authentication check failed:', error);
             return false;
         }
     }
 
-    bindEvents() {
-        // Form submissions
-        document.getElementById('productForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveProduct();
-        });
-
-        document.getElementById('planeForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.savePlane();
-        });
-
-        document.getElementById('ticketForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.createTicket();
-        });
-    }
-
     showSection(section) {
         // Hide all sections
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const sections = ['warehouse', 'planes', 'tickets', 'doctors'];
+        sections.forEach(s => {
+            const element = document.getElementById(s);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
 
         // Show selected section
-        document.getElementById(section).classList.add('active');
-        event.target.classList.add('active');
-
-        this.currentSection = section;
-        this.loadData();
+        const selectedSection = document.getElementById(section);
+        if (selectedSection) {
+            selectedSection.style.display = 'block';
+            this.currentSection = section;
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeBtn = document.querySelector(`[onclick="showSection('${section}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Load section-specific data
+            this.loadData();
+        }
     }
 
     async loadData() {
@@ -185,10 +125,6 @@ class WarehouseApp {
                 // Set today's date as default for new tickets
                 this.setDefaultTicketDate();
                 break;
-            case 'pilots':
-                // Set today's date as default for new tickets
-                this.setDefaultTicketDate();
-                break;
             case 'doctors':
                 await this.loadDoctors();
                 break;
@@ -204,59 +140,51 @@ class WarehouseApp {
 
     // PRODUCTS CRUD
     async saveProduct() {
+        const id = document.getElementById('productId').value;
         const name = document.getElementById('productName').value;
         const description = document.getElementById('productDescription').value;
         const price = document.getElementById('productPrice').value;
         const stock = document.getElementById('productStock').value;
-        const id = document.getElementById('productId').value;
 
-        const data = { name, description, price, total_stock: stock };
+        if (!name || !price) {
+            alert('Por favor complete todos los campos requeridos');
+            return;
+        }
 
         try {
-            let response;
-            if (id) {
-                // Update existing product
-                data.id = id;
-                response = await fetch('api/products.php', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } else {
-                // Create new product
-                data.stock = stock; // For new products, use 'stock' instead of 'total_stock'
-                response = await fetch('api/products.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            }
+            const response = await fetch('api/products.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: id || null,
+                    name: name,
+                    description: description,
+                    price: parseFloat(price),
+                    stock: parseInt(stock) || 0
+                })
+            });
 
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success || result.id) {
-                    // Show success message
-                    const action = id ? 'actualizado' : 'añadido';
-                    alert(`Producto ${action} exitosamente`);
+            const result = await response.json();
 
-                    // Reset form and reload data
-                    this.cancelProductEdit();
-                    await this.loadProducts();
-
-                    // Also refresh products in tickets section if it's currently active
-                    if (this.currentSection === 'tickets') {
-                        await this.loadProductsForTickets();
-                    }
-                } else {
-                    alert('Error al guardar el producto: ' + (result.message || 'Error desconocido'));
+            if (result.success) {
+                const action = id ? 'actualizado' : 'añadido';
+                alert(`Producto ${action} exitosamente`);
+                
+                document.getElementById('productForm').reset();
+                document.getElementById('productId').value = '';
+                this.cancelProductEdit();
+                await this.loadProducts();
+                
+                // Also refresh products in tickets section if it's currently active
+                if (this.currentSection === 'tickets') {
+                    await this.loadProductsForTickets();
                 }
             } else {
-                const errorText = await response.text();
-                alert('Error al guardar el producto: ' + errorText);
+                alert('Error: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error saving product:', error);
-            alert('Error de conexión al guardar el producto');
+            alert('Error guardando producto: ' + error.message);
         }
     }
 
@@ -264,7 +192,7 @@ class WarehouseApp {
         try {
             const response = await fetch('api/products.php');
             const products = await response.json();
-            
+
             const tbody = document.querySelector('#productsTable tbody');
             tbody.innerHTML = '';
 
@@ -277,7 +205,7 @@ class WarehouseApp {
                     <td>${product.total_stock}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editProduct(${product.id})">Editar</button>
-                        <button class="btn-small btn-success" onclick="app.updateStock(${product.id})">Actualizar Stock</button>
+                        <button class="btn-small btn-info" onclick="app.updateStock(${product.id})">Stock</button>
                         <button class="btn-small btn-danger" onclick="app.deleteProduct(${product.id})">Eliminar</button>
                     </td>
                 `;
@@ -288,11 +216,11 @@ class WarehouseApp {
     }
 
     editProduct(id) {
-        fetch('api/products.php')
+        fetch(`api/products.php?id=${id}`)
             .then(response => response.json())
             .then(products => {
-                const product = products.find(p => p.id == id);
-                if (product) {
+                if (products.length > 0) {
+                    const product = products[0];
                     document.getElementById('productId').value = product.id;
                     document.getElementById('productName').value = product.name;
                     document.getElementById('productDescription').value = product.description || '';
@@ -305,14 +233,18 @@ class WarehouseApp {
                     
                     this.editingProduct = id;
                 }
+            })
+            .catch(error => {
+                console.error('Error loading product:', error);
+                alert('Error cargando producto');
             });
     }
 
     cancelProductEdit() {
         document.getElementById('productForm').reset();
         document.getElementById('productId').value = '';
-        document.getElementById('productFormTitle').textContent = 'Añadir producto';
-        document.getElementById('productSubmitBtn').textContent = 'Añadir producto';
+        document.getElementById('productFormTitle').textContent = 'Añadir Producto';
+        document.getElementById('productSubmitBtn').textContent = 'Añadir Producto';
         document.getElementById('productCancelBtn').style.display = 'none';
         this.editingProduct = null;
     }
@@ -326,113 +258,101 @@ class WarehouseApp {
                     body: JSON.stringify({ id })
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        alert('Producto eliminado exitosamente');
-                        await this.loadProducts();
-
-                        // Also refresh products in tickets section if it's currently active
-                        if (this.currentSection === 'tickets') {
-                            await this.loadProductsForTickets();
-                        }
-                    } else {
-                        alert('Error al eliminar el producto: ' + (result.message || 'Error desconocido'));
+                const result = await response.json();
+                if (result.success) {
+                    alert('Producto eliminado exitosamente');
+                    await this.loadProducts();
+                    
+                    // Also refresh products in tickets section if it's currently active
+                    if (this.currentSection === 'tickets') {
+                        await this.loadProductsForTickets();
                     }
                 } else {
-                    const errorText = await response.text();
-                    alert('Error al eliminar el producto: ' + errorText);
+                    alert('Error: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                alert('Error de conexión al eliminar el producto');
+                alert('Error eliminando producto: ' + error.message);
             }
         }
     }
 
     async updateStock(productId) {
         const newStock = prompt('Ingrese la nueva cantidad de stock:');
-        if (newStock !== null && !isNaN(newStock) && newStock.trim() !== '') {
+        if (newStock !== null && !isNaN(newStock)) {
             try {
                 const response = await fetch('api/products.php', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: productId, stock: parseInt(newStock) })
+                    body: JSON.stringify({
+                        id: productId,
+                        action: 'update_stock',
+                        stock: parseInt(newStock)
+                    })
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        alert('Stock actualizado exitosamente');
-                        await this.loadProducts();
-
-                        // Also refresh products in tickets section if it's currently active
-                        if (this.currentSection === 'tickets') {
-                            await this.loadProductsForTickets();
-                        }
-                    } else {
-                        alert('Error al actualizar el stock: ' + (result.message || 'Error desconocido'));
+                const result = await response.json();
+                if (result.success) {
+                    alert('Stock actualizado exitosamente');
+                    await this.loadProducts();
+                    
+                    // Also refresh products in tickets section if it's currently active
+                    if (this.currentSection === 'tickets') {
+                        await this.loadProductsForTickets();
                     }
                 } else {
-                    const errorText = await response.text();
-                    alert('Error al actualizar el stock: ' + errorText);
+                    alert('Error: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error updating stock:', error);
-                alert('Error de conexión al actualizar el stock');
+                alert('Error actualizando stock: ' + error.message);
             }
-        } else if (newStock !== null) {
-            alert('Por favor ingrese un número válido');
         }
     }
 
     // PLANES CRUD
-
-    // PLANES CRUD
     async savePlane() {
-        const name = document.getElementById('planeName').value;
-        const description = document.getElementById('planeDescription').value;
         const id = document.getElementById('planeId').value;
+        const name = document.getElementById('planeName').value;
+        const model = document.getElementById('planeModel').value;
 
-        const data = { name, description };
+        if (!name || !model) {
+            alert('Por favor complete todos los campos requeridos');
+            return;
+        }
 
         try {
-            let response;
-            if (id) {
-                // Update existing plane
-                data.id = id;
-                response = await fetch('api/planes.php', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } else {
-                // Create new plane
-                response = await fetch('api/planes.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            }
+            const response = await fetch('api/planes.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: id || null,
+                    name: name,
+                    model: model
+                })
+            });
 
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success || result.id) {
-                    const action = id ? 'actualizado' : 'añadido';
-                    alert(`Avión ${action} exitosamente`);
+            const result = await response.json();
 
-                    this.cancelPlaneEdit();
-                    await this.loadPlanes();
-                } else {
-                    alert('Error al guardar el avión: ' + (result.message || 'Error desconocido'));
+            if (result.success) {
+                const action = id ? 'actualizado' : 'añadido';
+                alert(`Avión ${action} exitosamente`);
+                
+                document.getElementById('planeForm').reset();
+                document.getElementById('planeId').value = '';
+                this.cancelPlaneEdit();
+                await this.loadPlanes();
+                
+                // Also refresh planes in tickets section if it's currently active
+                if (this.currentSection === 'tickets') {
+                    await this.loadPlanesForTickets();
                 }
             } else {
-                const errorText = await response.text();
-                alert('Error al guardar el avión: ' + errorText);
+                alert('Error: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error saving plane:', error);
-            alert('Error de conexión al guardar el avión');
+            alert('Error guardando avión: ' + error.message);
         }
     }
 
@@ -440,7 +360,7 @@ class WarehouseApp {
         try {
             const response = await fetch('api/planes.php');
             const planes = await response.json();
-            
+
             const tbody = document.querySelector('#planesTable tbody');
             tbody.innerHTML = '';
 
@@ -448,10 +368,10 @@ class WarehouseApp {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${plane.name}</td>
-                    <td>${plane.description || ''}</td>
+                    <td>${plane.model}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editPlane(${plane.id})">Editar</button>
-                        <button class="btn-small btn-info" onclick="app.managePlaneStock(${plane.id})">Manage Stock</button>
+                        <button class="btn-small btn-info" onclick="app.managePlaneStock(${plane.id})">Stock</button>
                         <button class="btn-small btn-danger" onclick="app.deletePlane(${plane.id})">Eliminar</button>
                     </td>
                 `;
@@ -462,14 +382,14 @@ class WarehouseApp {
     }
 
     editPlane(id) {
-        fetch('api/planes.php')
+        fetch(`api/planes.php?id=${id}`)
             .then(response => response.json())
             .then(planes => {
-                const plane = planes.find(p => p.id == id);
-                if (plane) {
+                if (planes.length > 0) {
+                    const plane = planes[0];
                     document.getElementById('planeId').value = plane.id;
                     document.getElementById('planeName').value = plane.name;
-                    document.getElementById('planeDescription').value = plane.description || '';
+                    document.getElementById('planeModel').value = plane.model;
                     
                     document.getElementById('planeFormTitle').textContent = 'Editar Avión';
                     document.getElementById('planeSubmitBtn').textContent = 'Actualizar Avión';
@@ -477,6 +397,10 @@ class WarehouseApp {
                     
                     this.editingPlane = id;
                 }
+            })
+            .catch(error => {
+                console.error('Error loading plane:', error);
+                alert('Error cargando avión');
             });
     }
 
@@ -512,12 +436,12 @@ class WarehouseApp {
                 }
             } catch (error) {
                 console.error('Error deleting plane:', error);
-                alert('Error de conexión al eliminar el avión');
+                alert('Error eliminando avión: ' + error.message);
             }
         }
     }
 
-    // TICKETS CRUD
+    // TICKETS CRUD (SIMPLIFIED - NO PILOTS)
     // Load planes for ticket form
     async loadPlanesForTickets() {
         try {
@@ -530,7 +454,7 @@ class WarehouseApp {
             planes.forEach(plane => {
                 const option = document.createElement('option');
                 option.value = plane.id;
-                option.textContent = plane.name;
+                option.textContent = `${plane.name} (${plane.model})`;
                 select.appendChild(option);
             });
         } catch (error) {
@@ -576,6 +500,7 @@ class WarehouseApp {
             tickets.forEach((ticket, index) => {
                 console.log(`🎫 Processing ticket ${index + 1}:`, ticket);
                 const row = tbody.insertRow();
+
                 // Use ticket_date if available, otherwise fall back to created_at
                 const displayDate = ticket.ticket_date
                     ? new Date(ticket.ticket_date).toLocaleDateString()
@@ -608,10 +533,10 @@ class WarehouseApp {
                 message: error.message,
                 stack: error.stack
             });
+            alert('Error cargando tickets: ' + error.message);
         }
     }
 
-    // Create or update ticket method
     async createTicket() {
         const ticketId = document.getElementById('ticketId').value;
         const planeId = document.getElementById('ticketPlane').value;
@@ -639,6 +564,8 @@ class WarehouseApp {
                 requestBody.id = parseInt(ticketId);
             }
 
+            console.log('🎫 Sending ticket request:', { method, requestBody });
+
             const response = await fetch('api/tickets.php', {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -646,36 +573,21 @@ class WarehouseApp {
             });
 
             const result = await response.json();
+            console.log('🎫 Ticket response:', result);
 
             if (result.success) {
-                // Reset form
+                const action = isEditing ? 'actualizado' : 'creado';
+                alert(`Ticket ${action} exitosamente`);
+                
                 this.cancelTicketEdit();
                 await this.loadTickets();
-
-                if (isEditing) {
-                    alert('Se ha actualizado el ticket correctamente');
-                } else {
-                    alert('Se ha creado el ticket correctamente');
-                }
             } else {
-                console.error('Ticket creation/update failed:', result);
-                let errorMessage = 'Error guardando el ticket: ';
-
-                if (result.error) {
-                    if (result.error.includes('ticket_date')) {
-                        errorMessage += 'Error de base de datos. Por favor, contacte al administrador para actualizar la estructura de la base de datos.';
-                    } else {
-                        errorMessage += result.error;
-                    }
-                } else {
-                    errorMessage += 'Error desconocido';
-                }
-
-                alert(errorMessage);
+                console.error('❌ Ticket creation failed:', result);
+                alert('Error saving ticket: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
-            console.error('Error guardando el ticket:', error);
-            alert('Error de conexión al guardar el ticket: ' + error.message);
+            console.error('❌ Error in createTicket:', error);
+            alert('Error saving ticket: ' + error.message);
         }
     }
 
@@ -685,45 +597,48 @@ class WarehouseApp {
                 const response = await fetch('api/tickets.php', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({ id })
                 });
 
                 const result = await response.json();
-
                 if (result.success) {
-                    this.loadTickets();
-                    alert('Ticket deleted successfully');
+                    alert('Ticket eliminado exitosamente');
+                    await this.loadTickets();
                 } else {
-                    alert('Error deleting ticket: ' + (result.error || 'Unknown error'));
+                    alert('Error: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error deleting ticket:', error);
-                alert('Error deleting ticket: ' + error.message);
+                alert('Error eliminando ticket: ' + error.message);
             }
         }
     }
 
-    
-
     async editTicket(id) {
-        console.log('🔧 editTicket called with ID:', id);
-        //alert('Edit button clicked! ID: ' + id);
-
+        console.log('🎫 editTicket called with ID:', id);
         try {
-            // Fetch the specific ticket with its pilots and doctors
             console.log('📡 Fetching ticket data...');
             const response = await fetch(`api/tickets.php?id=${id}`);
-            console.log('📡 Response status:', response.status);
-            const ticketData = await response.json();
-            console.log('📡 Ticket data received:', ticketData);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const tickets = await response.json();
+            console.log('📡 Received ticket data:', tickets);
+            
+            if (tickets && tickets.length > 0) {
+                const ticket = tickets[0];
+                console.log('🎫 Processing ticket for edit:', ticket);
 
-            if (ticketData && ticketData.length > 0) {
-                const ticket = ticketData[0]; // API returns array, get first item
-                console.log('✅ Processing ticket:', ticket);
+                // Get form elements
+                const titleElement = document.getElementById('ticketFormTitle');
+                const submitBtn = document.getElementById('ticketSubmitBtn');
+                const cancelBtn = document.getElementById('ticketCancelBtn');
 
-                // Set basic ticket information with error handling
-                console.log('📝 Setting form values...');
+                console.log('🎫 Form elements found:', { titleElement, submitBtn, cancelBtn });
 
+                // Populate form fields
                 try {
                     const ticketIdEl = document.getElementById('ticketId');
                     if (ticketIdEl) {
@@ -797,49 +712,6 @@ class WarehouseApp {
         }
     }
 
-                if (titleElement) {
-                    titleElement.textContent = 'Editar Ticket';
-                    console.log('✅ Title updated');
-                } else {
-                    console.log('❌ Title element not found');
-                }
-
-                if (submitBtn) {
-                    submitBtn.textContent = 'Actualizar Ticket';
-                    console.log('✅ Submit button updated');
-                } else {
-                    console.log('❌ Submit button not found');
-                }
-
-                if (cancelBtn) {
-                    cancelBtn.style.display = 'inline-block';
-                    console.log('✅ Cancel button shown');
-                } else {
-                    console.log('❌ Cancel button not found');
-                }
-
-                // Scroll to form
-                const formElement = document.getElementById('ticketForm');
-                if (formElement) {
-                    console.log('📜 Scrolling to form...');
-                    formElement.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    console.log('❌ Form element not found');
-                }
-
-                this.editingTicket = id;
-                console.log('✅ Edit setup complete');
-                //alert('Edit setup complete! Check the form.');
-            } else {
-                console.log('❌ No ticket data found');
-                alert('Ticket not found');
-            }
-        } catch (error) {
-            console.error('❌ Error loading ticket for editing:', error);
-            alert('Error loading ticket: ' + error.message);
-        }
-    }
-
     cancelTicketEdit() {
         document.getElementById('ticketForm').reset();
         document.getElementById('ticketId').value = '';
@@ -849,54 +721,9 @@ class WarehouseApp {
 
         // Set today's date as default
         document.getElementById('ticketDate').value = new Date().toISOString().split('T')[0];
-
-        // Uncheck all checkboxes
-        document.querySelectorAll('#ticketPilots input[type="checkbox"]').forEach(cb => cb.checked = false);
-        document.querySelectorAll('#ticketDoctors input[type="checkbox"]').forEach(cb => cb.checked = false);
-
+        
         this.editingTicket = null;
     }
-
-    async deleteTicket(id) {
-        if (confirm('¿Está seguro de que desea eliminar este ticket?')) {
-            try {
-                const response = await fetch('api/tickets.php', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id })
-                });
-
-                if (response.ok) {
-                    this.loadTickets();
-                }
-            } catch (error) {
-                console.error('Error deleting ticket:', error);
-            }
-        }
-    }
-
-    async loadPlanesForTickets() {
-        try {
-            const response = await fetch('api/planes.php');
-            const planes = await response.json();
-            
-            const select = document.getElementById('ticketPlane');
-            select.innerHTML = '<option value="">Seleccionar Avión</option>';
-
-            planes.forEach(plane => {
-                const option = document.createElement('option');
-                option.value = plane.id;
-                option.textContent = plane.name;
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error loading planes for tickets:', error);
-        }
-    }
-
-    // PILOTS SECTION REMOVED - No longer needed for simplified ticket structure
-
-    // DOCTORS CRUD METHODS
 
     // DOCTORS CRUD METHODS
     async loadDoctors() {
@@ -948,30 +775,39 @@ class WarehouseApp {
                 document.getElementById('doctorId').value = '';
                 this.cancelDoctorEdit();
                 await this.loadDoctors();
+                
+                // Also refresh doctors in tickets section if it's currently active
+                if (this.currentSection === 'tickets') {
+                    await this.loadDoctorsForTickets();
+                }
             } else {
-                alert('Error al guardar el médico: ' + (result.error || 'Error desconocido'));
+                alert('Error: ' + (result.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error saving doctor:', error);
-            alert('Error de conexión al guardar el médico');
+            alert('Error guardando médico: ' + error.message);
         }
     }
 
     editDoctor(id) {
-        fetch('api/doctors.php')
+        fetch(`api/doctors.php?id=${id}`)
             .then(response => response.json())
             .then(doctors => {
-                const doctor = doctors.find(d => d.id == id);
-                if (doctor) {
+                if (doctors.length > 0) {
+                    const doctor = doctors[0];
                     document.getElementById('doctorId').value = doctor.id;
                     document.getElementById('doctorName').value = doctor.name;
-
+                    
                     document.getElementById('doctorFormTitle').textContent = 'Editar Médico';
                     document.getElementById('doctorSubmitBtn').textContent = 'Actualizar Médico';
                     document.getElementById('doctorCancelBtn').style.display = 'inline-block';
-
+                    
                     this.editingDoctor = id;
                 }
+            })
+            .catch(error => {
+                console.error('Error loading doctor:', error);
+                alert('Error cargando médico');
             });
     }
 
@@ -990,57 +826,59 @@ class WarehouseApp {
                 const response = await fetch('api/doctors.php', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({ id })
                 });
 
                 const result = await response.json();
-
                 if (result.success) {
                     alert('Médico eliminado exitosamente');
                     await this.loadDoctors();
+                    
+                    // Also refresh doctors in tickets section if it's currently active
+                    if (this.currentSection === 'tickets') {
+                        await this.loadDoctorsForTickets();
+                    }
                 } else {
-                    alert('Error al eliminar el médico: ' + (result.error || 'Error desconocido'));
+                    alert('Error: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error deleting doctor:', error);
-                alert('Error de conexión al eliminar el médico');
+                alert('Error eliminando médico: ' + error.message);
             }
         }
     }
 
-    // Load doctors for ticket form
+    // Load doctors for ticket form (multi-select)
     async loadDoctorsForTickets() {
         try {
             const response = await fetch('api/doctors.php');
             const doctors = await response.json();
 
             const container = document.getElementById('ticketDoctors');
-            container.innerHTML = '';
+            if (container) {
+                container.innerHTML = '';
 
-            doctors.forEach(doctor => {
-                const div = document.createElement('div');
-                div.className = 'multi-select-item';
-                div.innerHTML = `
-                    <input type="checkbox" id="doctor_${doctor.id}" value="${doctor.id}">
-                    <label for="doctor_${doctor.id}">${doctor.name}</label>
-                `;
-                container.appendChild(div);
-            });
+                doctors.forEach(doctor => {
+                    const div = document.createElement('div');
+                    div.className = 'multi-select-item';
+                    div.innerHTML = `
+                        <input type="checkbox" id="doctor_${doctor.id}" value="${doctor.id}">
+                        <label for="doctor_${doctor.id}">${doctor.name}</label>
+                    `;
+                    container.appendChild(div);
+                });
+            }
         } catch (error) {
             console.error('Error loading doctors for tickets:', error);
         }
     }
 
-    // Load products for ticket management
+    // Load products for ticket form display
     async loadProductsForTickets() {
         try {
             const response = await fetch('api/products.php');
             const products = await response.json();
 
-            // Store products for ticket item management
-            this.availableProducts = products;
-
-            // If there's a product selection area in tickets, populate it
             const productContainer = document.getElementById('ticketProducts');
             if (productContainer) {
                 productContainer.innerHTML = '';
@@ -1073,154 +911,81 @@ class WarehouseApp {
         this.loadTickets();
     }
 
-
-    // Updated createTicket method to handle both create and update
-    async createTicket() {
-        const ticketId = document.getElementById('ticketId').value;
-        const planeId = document.getElementById('ticketPlane').value;
-        const ticketNumber = document.getElementById('ticketNumber').value;
-        const description = document.getElementById('ticketDescription').value;
-
-        // Get selected pilots
-        const selectedPilots = [];
-        document.querySelectorAll('#ticketPilots input[type="checkbox"]:checked').forEach(checkbox => {
-            selectedPilots.push(parseInt(checkbox.value));
-        });
-
-        // Get selected doctors
-        const selectedDoctors = [];
-        document.querySelectorAll('#ticketDoctors input[type="checkbox"]:checked').forEach(checkbox => {
-            selectedDoctors.push(parseInt(checkbox.value));
-        });
-
-        if (!planeId || !ticketNumber) {
-            alert('Please fill in all required fields');
-            return;
-        }
-
-        if (selectedPilots.length === 0) {
-            alert('Please select at least one pilot');
-            return;
-        }
-
-        try {
-            const isEditing = ticketId && ticketId.trim() !== '';
-            const method = isEditing ? 'PUT' : 'POST';
-            const requestBody = {
-                plane_id: planeId,
-                pilot_ids: selectedPilots,
-                doctor_ids: selectedDoctors,
-                ticket_number: ticketNumber,
-                description: description
-            };
-
-            if (isEditing) {
-                requestBody.id = parseInt(ticketId);
-            }
-
-            const response = await fetch('api/tickets.php', {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Reset form
-                this.cancelTicketEdit();
-                this.loadTickets();
-
-                if (isEditing) {
-                    alert('Ticket updated successfully');
-                } else {
-                    alert('Ticket created successfully');
-                }
-            } else {
-                alert('Error saving ticket: ' + (result.error || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Error saving ticket:', error);
-            alert('Error saving ticket: ' + error.message);
-        }
-    }
-
-    async deleteTicket(id) {
-        if (confirm('¿Está seguro de que desea eliminar este ticket?')) {
-            try {
-                const response = await fetch('api/tickets.php', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    this.loadTickets();
-                    alert('Ticket deleted successfully');
-                } else {
-                    alert('Error deleting ticket: ' + (result.error || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error deleting ticket:', error);
-                alert('Error deleting ticket: ' + error.message);
-            }
-        }
-    }
+    // PLANE STOCK MANAGEMENT
     async managePlaneStock(planeId) {
         try {
-            const response = await fetch('api/products.php');
-            const products = await response.json();
-            
-            const stockResponse = await fetch(`api/plane-stock.php?plane_id=${planeId}`);
-            const stockData = await stockResponse.json();
-            
-            const planeDetails = document.getElementById('planeDetails');
-            const container = document.getElementById('planeStockContainer');
-            
-            container.innerHTML = '<h4>Product Stock Management</h4>';
-            
-            products.forEach(product => {
-                const stock = stockData.find(s => s.product_id == product.id);
-                const currentStock = stock ? stock.current_stock : 0;
-                const minimumStock = stock ? stock.minimum_quantity : 0;
+            const response = await fetch(`api/plane-stock.php?plane_id=${planeId}`);
+            const stockData = await response.json();
+
+            let stockHtml = `
+                <div class="stock-management">
+                    <h3>Gestión de Stock - Avión ID: ${planeId}</h3>
+                    <table class="stock-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Stock Actual</th>
+                                <th>Mínimo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            stockData.forEach(item => {
+                const isLow = item.current_stock <= item.minimum_stock;
+                const rowClass = isLow ? 'low-stock' : '';
                 
-                const productDiv = document.createElement('div');
-                productDiv.className = 'stock-item';
-                productDiv.innerHTML = `
-                    <div class="stock-info">
-                        <strong>${product.name}</strong><br>
-                        Current Stock: ${currentStock}<br>
-                        Minimum: ${minimumStock}<br>
-                        Warehouse Stock: ${product.total_stock}
-                    </div>
-                    <div class="stock-actions">
-                        <button onclick="app.setMinimum(${planeId}, ${product.id})">Set Minimum</button>
-                        <button onclick="app.transferToPlane(${planeId}, ${product.id})">Transfer</button>
-                    </div>
+                stockHtml += `
+                    <tr class="${rowClass}">
+                        <td>${item.product_name}</td>
+                        <td>${item.current_stock}</td>
+                        <td>${item.minimum_stock}</td>
+                        <td>
+                            <button onclick="app.setMinimum(${planeId}, ${item.product_id})" class="btn-small">Set Min</button>
+                            <button onclick="app.transferToPlane(${planeId}, ${item.product_id})" class="btn-small">Transfer</button>
+                        </td>
+                    </tr>
                 `;
-                container.appendChild(productDiv);
             });
-            
-            planeDetails.style.display = 'block';
+
+            stockHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // Show in a modal or dedicated area
+            const container = document.getElementById('planeStockContainer') || document.body;
+            container.innerHTML = stockHtml;
+
         } catch (error) {
-            console.error('Error managing plane stock:', error);
+            console.error('Error loading plane stock:', error);
+            alert('Error cargando stock del avión');
         }
     }
 
     async setMinimum(planeId, productId) {
-        const minimum = prompt('Set minimum stock level:');
+        const minimum = prompt('Ingrese el stock mínimo:');
         if (minimum !== null && !isNaN(minimum)) {
             try {
                 const response = await fetch('api/plane-stock.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plane_id: planeId, product_id: productId, minimum_quantity: parseInt(minimum) })
+                    body: JSON.stringify({
+                        action: 'set_minimum',
+                        plane_id: planeId,
+                        product_id: productId,
+                        minimum_stock: parseInt(minimum)
+                    })
                 });
 
-                if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    alert('Mínimo actualizado');
                     this.managePlaneStock(planeId);
+                } else {
+                    alert('Error: ' + result.error);
                 }
             } catch (error) {
                 console.error('Error setting minimum:', error);
@@ -1229,165 +994,128 @@ class WarehouseApp {
     }
 
     async transferToPlane(planeId, productId) {
-        const quantity = prompt('Enter quantity to transfer:');
+        const quantity = prompt('Cantidad a transferir:');
         if (quantity !== null && !isNaN(quantity)) {
             try {
                 const response = await fetch('api/transfer.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plane_id: planeId, product_id: productId, quantity: parseInt(quantity) })
+                    body: JSON.stringify({
+                        plane_id: planeId,
+                        product_id: productId,
+                        quantity: parseInt(quantity)
+                    })
                 });
 
-                if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    alert('Transferencia exitosa');
                     this.managePlaneStock(planeId);
-                    this.loadProducts();
+                    this.loadProducts(); // Refresh warehouse stock
+                } else {
+                    alert('Error: ' + result.error);
                 }
             } catch (error) {
-                console.error('Error transferring to plane:', error);
+                console.error('Error transferring:', error);
             }
         }
     }
 
+    // TICKET ITEMS MANAGEMENT
     async manageTicketItems(ticketId) {
         try {
-            console.log('Loading ticket items for ticket ID:', ticketId);
+            const response = await fetch(`api/ticket-items.php?ticket_id=${ticketId}`);
+            const items = await response.json();
 
-            const response = await fetch(`api/ticket-details.php?ticket_id=${ticketId}`);
-            const ticketDetails = await response.json();
-
-            console.log('Ticket details response:', ticketDetails);
-
-            if (ticketDetails.error) {
-                alert('Error loading ticket details: ' + ticketDetails.error);
-                return;
-            }
-
-            const itemsResponse = await fetch(`api/ticket-items.php?ticket_id=${ticketId}`);
-            const ticketItems = await itemsResponse.json();
-
-            console.log('Ticket items response:', ticketItems);
-
-            if (ticketItems.error) {
-                console.error('Error loading ticket items:', ticketItems.error);
-                // Continue anyway, might just be no items yet
-            }
-
-            const ticketDetailsDiv = document.getElementById('ticketDetails');
-            const container = document.getElementById('ticketItemsContainer');
-
-            container.innerHTML = `
-                <h4>Ticket Items Management</h4>
-                <p><strong>Ticket:</strong> ${ticketDetails.ticket_number} - <strong>Plane:</strong> ${ticketDetails.plane_name}</p>
-                <div class="add-item-form">
-                    <h5>Add Item</h5>
-                    <select id="itemProduct" onchange="app.updateItemPreview()">
-                        <option value="">Select Product</option>
-                    </select>
-                    <input type="number" id="itemQuantity" placeholder="Quantity" min="1" oninput="app.updateItemPreview()">
-                    <div id="itemPreview" class="item-preview" style="display: none;">
-                        <span>Estimated cost: $<span id="previewCost">0.00</span></span>
+            let itemsHtml = `
+                <div class="ticket-items-management">
+                    <h3>Gestión de Items - Ticket ID: ${ticketId}</h3>
+                    
+                    <div class="add-item-form">
+                        <h4>Añadir Item</h4>
+                        <select id="itemProduct_${ticketId}">
+                            <option value="">Seleccionar Producto</option>
+                        </select>
+                        <input type="number" id="itemQuantity_${ticketId}" placeholder="Cantidad" min="1">
+                        <button onclick="app.addTicketItem(${ticketId})" class="btn-small btn-primary">Añadir</button>
                     </div>
-                    <button onclick="app.addTicketItem(${ticketId})">Add Item</button>
-                </div>
-                <div class="ticket-items-list">
-                    <h5>Current Items</h5>
-                    <div id="currentItemsList"></div>
-                    <div id="totalCost" class="total-cost" style="display: none;">
-                        <strong>Total Cost: $<span id="totalAmount">0.00</span></strong>
-                    </div>
+                    
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            let totalCost = 0;
+            items.forEach(item => {
+                const itemTotal = item.quantity_used * item.price;
+                totalCost += itemTotal;
+                
+                itemsHtml += `
+                    <tr>
+                        <td>${item.product_name}</td>
+                        <td>${item.quantity_used}</td>
+                        <td>$${parseFloat(item.price).toFixed(2)}</td>
+                        <td>$${itemTotal.toFixed(2)}</td>
+                        <td>
+                            <button onclick="app.removeTicketItem(${item.id}, ${ticketId})" class="btn-small btn-danger">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            itemsHtml += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3"><strong>Total:</strong></td>
+                                <td><strong>$${totalCost.toFixed(2)}</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             `;
 
-            // Populate available products
-            const productSelect = document.getElementById('itemProduct');
-            if (ticketDetails.available_products && ticketDetails.available_products.length > 0) {
-                console.log('Available products:', ticketDetails.available_products);
-                ticketDetails.available_products.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.product_id;
-                    option.setAttribute('data-price', product.price || 0);
-                    option.textContent = `${product.product_name} - $${parseFloat(product.price || 0).toFixed(2)} (Available: ${product.current_stock})`;
-                    productSelect.appendChild(option);
-                });
-            } else {
-                console.log('No products available in this plane');
-                productSelect.innerHTML = '<option value="">No products available in this plane</option>';
+            // Show in container
+            const container = document.getElementById('ticketItemsContainer');
+            if (container) {
+                container.innerHTML = itemsHtml;
+                
+                // Load products for the select
+                const productsResponse = await fetch('api/products.php');
+                const products = await productsResponse.json();
+                
+                const select = document.getElementById(`itemProduct_${ticketId}`);
+                if (select) {
+                    products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.id;
+                        option.textContent = `${product.name} - $${parseFloat(product.price).toFixed(2)}`;
+                        select.appendChild(option);
+                    });
+                }
             }
 
-            // Show current items and calculate total
-            const currentItemsList = document.getElementById('currentItemsList');
-            const totalCostDiv = document.getElementById('totalCost');
-            const totalAmountSpan = document.getElementById('totalAmount');
-            let totalCost = 0;
-
-            if (ticketItems && Array.isArray(ticketItems) && ticketItems.length > 0) {
-                console.log('Displaying ticket items:', ticketItems);
-                ticketItems.forEach(item => {
-                    const itemPrice = parseFloat(item.price || 0);
-                    const itemQuantity = parseInt(item.quantity_used || 0);
-                    const itemTotal = itemPrice * itemQuantity;
-                    totalCost += itemTotal;
-
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'ticket-item';
-                    itemDiv.innerHTML = `
-                        <div class="item-info">
-                            <span class="item-name">${item.product_name}</span>
-                            <span class="item-details">Cantidad: ${itemQuantity} × $${itemPrice.toFixed(2)} = $${itemTotal.toFixed(2)}</span>
-                        </div>
-                        <button class="btn-small btn-danger" onclick="app.removeTicketItem(${item.id}, ${ticketId})">Remove</button>
-                    `;
-                    currentItemsList.appendChild(itemDiv);
-                });
-
-                // Show total cost
-                totalAmountSpan.textContent = totalCost.toFixed(2);
-                totalCostDiv.style.display = 'block';
-            } else {
-                console.log('No items found for this ticket');
-                currentItemsList.innerHTML = '<p>No items added to this ticket yet.</p>';
-                totalCostDiv.style.display = 'none';
-            }
-
-            ticketDetailsDiv.style.display = 'block';
         } catch (error) {
-            console.error('Error managing ticket items:', error);
-            alert('Error loading ticket items: ' + error.message);
-        }
-    }
-
-    updateItemPreview() {
-        const productSelect = document.getElementById('itemProduct');
-        const quantityInput = document.getElementById('itemQuantity');
-        const previewDiv = document.getElementById('itemPreview');
-        const previewCostSpan = document.getElementById('previewCost');
-
-        if (productSelect && quantityInput && previewDiv && previewCostSpan) {
-            const selectedOption = productSelect.options[productSelect.selectedIndex];
-            const price = parseFloat(selectedOption.getAttribute('data-price') || 0);
-            const quantity = parseInt(quantityInput.value || 0);
-
-            if (productSelect.value && quantity > 0) {
-                const totalCost = price * quantity;
-                previewCostSpan.textContent = totalCost.toFixed(2);
-                previewDiv.style.display = 'block';
-            } else {
-                previewDiv.style.display = 'none';
-            }
+            console.error('Error loading ticket items:', error);
+            alert('Error cargando items del ticket');
         }
     }
 
     async addTicketItem(ticketId) {
-        const productId = document.getElementById('itemProduct').value;
-        const quantity = document.getElementById('itemQuantity').value;
+        const productId = document.getElementById(`itemProduct_${ticketId}`).value;
+        const quantity = document.getElementById(`itemQuantity_${ticketId}`).value;
 
         if (!productId || !quantity) {
-            alert('Please select a product and enter quantity');
-            return;
-        }
-
-        if (parseInt(quantity) <= 0) {
-            alert('Quantity must be greater than 0');
+            alert('Por favor seleccione un producto y cantidad');
             return;
         }
 
@@ -1398,29 +1126,26 @@ class WarehouseApp {
                 body: JSON.stringify({
                     ticket_id: ticketId,
                     product_id: productId,
-                    quantity_used: parseInt(quantity) // Use quantity_used to match API
+                    quantity_used: parseInt(quantity)
                 })
             });
 
             const result = await response.json();
-
             if (result.success) {
-                // Clear the form
-                document.getElementById('itemProduct').value = '';
-                document.getElementById('itemQuantity').value = '';
-                // Reload the ticket items
+                alert('Item añadido exitosamente');
                 this.manageTicketItems(ticketId);
+                this.loadTickets(); // Refresh to update total cost
             } else {
-                alert('Error adding item: ' + (result.error || 'Unknown error'));
+                alert('Error: ' + result.error);
             }
         } catch (error) {
             console.error('Error adding ticket item:', error);
-            alert('Error adding item: ' + error.message);
+            alert('Error añadiendo item: ' + error.message);
         }
     }
 
     async removeTicketItem(itemId, ticketId) {
-        if (confirm('Remove this item from the ticket?')) {
+        if (confirm('¿Está seguro de que desea eliminar este item?')) {
             try {
                 const response = await fetch('api/ticket-items.php', {
                     method: 'DELETE',
@@ -1429,14 +1154,15 @@ class WarehouseApp {
                 });
 
                 const result = await response.json();
-
                 if (result.success) {
+                    alert('Item eliminado exitosamente');
                     this.manageTicketItems(ticketId);
+                    this.loadTickets(); // Refresh to update total cost
                 } else {
-                    alert('Error removing item: ' + (result.error || 'Unknown error'));
+                    alert('Error: ' + result.error);
                 }
             } catch (error) {
-                console.error('Error removing ticket item:', error);
+                console.error('Error removing item:', error);
                 alert('Error removing item: ' + error.message);
             }
         }
@@ -1500,83 +1226,42 @@ function clearCacheAndReload() {
 // Initialize the app
 const app = new WarehouseApp();
 
-// Register service worker for PWA functionality
+// Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+    window.addEventListener('load', function() {
         navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('SW registered: ', registration);
-
-                // Check for updates
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // New content is available, prompt user to refresh
-                            if (confirm('Nueva versión disponible. ¿Desea actualizar?')) {
-                                window.location.reload();
-                            }
-                        }
-                    });
-                });
-            })
-            .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
+            .then(function(registration) {
+                console.log('ServiceWorker registration successful');
+            }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
             });
     });
 }
 
-// Add install prompt for PWA
+// PWA Install prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
-    // Stash the event so it can be triggered later
     deferredPrompt = e;
-
-    // Show install button or banner
-    showInstallPromotion();
+    
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.style.display = 'block';
+        installBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+    }
 });
 
-function showInstallPromotion() {
-    // Create install button if it doesn't exist
-    if (!document.getElementById('installBtn')) {
-        const installBtn = document.createElement('button');
-        installBtn.id = 'installBtn';
-        installBtn.textContent = '📱 Instalar App';
-        installBtn.className = 'btn-primary';
-        installBtn.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            border-radius: 25px;
-            padding: 12px 20px;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        `;
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
-                installBtn.remove();
-            }
-        });
-
-        document.body.appendChild(installBtn);
-
-        // Auto-hide after 10 seconds
-        setTimeout(() => {
-            if (installBtn.parentNode) {
-                installBtn.style.opacity = '0.7';
-            }
-        }, 10000);
-    }
-}
-
-// Handle app installation
 window.addEventListener('appinstalled', (evt) => {
     console.log('App was installed');
     const installBtn = document.getElementById('installBtn');
@@ -1589,4 +1274,3 @@ window.addEventListener('appinstalled', (evt) => {
 function showSection(section) {
     app.showSection(section);
 }
-
