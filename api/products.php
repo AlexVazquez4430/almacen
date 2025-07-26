@@ -20,9 +20,27 @@ try {
     switch($method) {
         case 'GET':
             try {
-                $stmt = $db->query("SELECT * FROM products ORDER BY name");
-                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($products);
+                       if (isset($_GET['id'])) {
+            $productId = $_GET['id'];
+            $stmt = $db->prepare("SELECT id, name, total_stock FROM products WHERE id = ?");
+            $stmt->execute([$productId]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($product) {
+                echo json_encode([
+                    'id' => $product['id'],
+                    'name' => $product['name'],
+                    'stock' => $product['total_stock']
+                ]);
+            } else {
+                echo json_encode(['error' => 'Product not found']);
+            }
+        } else {
+            // Si no hay ?id, retorna todos los productos
+            $stmt = $db->query("SELECT * FROM products ORDER BY name");
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($products);
+        }
             } catch(PDOException $e) {
                 echo json_encode(['error' => 'Database query failed: ' . $e->getMessage()]);
             }

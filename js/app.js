@@ -1223,23 +1223,33 @@ class WarehouseApp {
   }
 
   async transferToPlane(planeId, productId) {
-    const quantity = prompt("Enter quantity to transfer:");
+    const quantity = prompt("Ingresa la cantidad a transferir:");
     if (quantity !== null && !isNaN(quantity)) {
       try {
-        const response = await fetch("api/transfer.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plane_id: planeId,
-            product_id: productId,
-            quantity: parseInt(quantity),
-          }),
-        });
+        //Ingresar la logica para mandar una alerta
+        const validacion = await fetch(`api/products.php?id=${productId}`);
+        const data = await validacion.json();
+        if (quantity > data.stock) {
+          alert(
+            "No hay suficiente stock en el almacén para transferir esta cantidad."
+          );
+        } else {
+          const response = await fetch("api/transfer.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plane_id: planeId,
+              product_id: productId,
+              quantity: parseInt(quantity),
+            }),
+          });
 
-        if (response.ok) {
-          this.managePlaneStock(planeId);
-          this.loadProducts();
+          if (response.ok) {
+            this.managePlaneStock(planeId);
+            this.loadProducts();
+          }
         }
+        // fin la de la lógica para mandar una alerta
       } catch (error) {
         console.error("Error transferring to plane:", error);
       }
