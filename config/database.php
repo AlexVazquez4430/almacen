@@ -99,13 +99,11 @@ class Database {
                 CREATE TABLE IF NOT EXISTS tickets (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     plane_id INTEGER NOT NULL,
-                    pilot_id INTEGER,
                     ticket_number VARCHAR(50) NOT NULL,
                     description TEXT,
                     ticket_date DATE DEFAULT (date('now')),
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (plane_id) REFERENCES planes(id),
-                    FOREIGN KEY (pilot_id) REFERENCES pilots(id)
+                    FOREIGN KEY (plane_id) REFERENCES planes(id)
                 )
             ");
 
@@ -129,16 +127,6 @@ class Database {
             ");
 
             // Ticket pilots junction table (many-to-many)
-            $this->db->exec("
-                CREATE TABLE IF NOT EXISTS ticket_pilots (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ticket_id INTEGER NOT NULL,
-                    pilot_id INTEGER NOT NULL,
-                    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
-                    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
-                    UNIQUE(ticket_id, pilot_id)
-                )
-            ");
 
             // Ticket doctors junction table (many-to-many)
             $this->db->exec("
