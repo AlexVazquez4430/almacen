@@ -70,8 +70,7 @@ try {
                     break;
                 }
 
-                // Get filter parameters for listing all tickets
-                $pilot_filter = $_GET['pilot'] ?? '';
+                // Get filter parameters for listing all tickets 
                 $doctor_filter = $_GET['doctor'] ?? '';
                 $date_filter = $_GET['date'] ?? '';
                 $description_filter = $_GET['description'] ?? '';
@@ -98,10 +97,6 @@ try {
                 $params = [];
 
                 // Add filters
-                if (!empty($pilot_filter)) {
-                    $query .= " AND pi.name LIKE ?";
-                    $params[] = '%' . $pilot_filter . '%';
-                }
 
                 if (!empty($doctor_filter)) {
                     $query .= " AND d.name LIKE ?";
@@ -128,15 +123,16 @@ try {
                 // Ya no los obtenemos
 
                     // Get doctors for this ticket
-                    $doctorStmt = $db->prepare("
-                        SELECT d.id, d.name
-                        FROM ticket_doctors td
-                        JOIN doctors d ON td.doctor_id = d.id
-                        WHERE td.ticket_id = ?
-                    ");
-                    $doctorStmt->execute([$ticket['id']]);
-                    $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
-                }
+               foreach ($tickets as &$ticket) {
+    $doctorStmt = $db->prepare("
+        SELECT d.id, d.name
+        FROM ticket_doctors td
+        JOIN doctors d ON td.doctor_id = d.id
+        WHERE td.ticket_id = ?
+    ");
+    $doctorStmt->execute([$ticket['id']]);
+    $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
                 echo json_encode($tickets);
             } catch(PDOException $e) {

@@ -10,11 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Create pilots table (simplified - only name field)
-CREATE TABLE IF NOT EXISTS pilots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- No more pilots
 
 -- Create doctors table
 CREATE TABLE IF NOT EXISTS doctors (

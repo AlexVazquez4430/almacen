@@ -40,13 +40,7 @@ class Database {
             ");
 
             // Pilots table
-            $this->db->exec("
-                CREATE TABLE IF NOT EXISTS pilots (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name VARCHAR(255) NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            ");
+            // No more pilots, so we skip this table
 
             // Users table for authentication
             $this->db->exec("
@@ -148,11 +142,7 @@ class Database {
             }
 
             // Add pilot_id column to existing tickets table if it doesn't exist
-            try {
-                $this->db->exec("ALTER TABLE tickets ADD COLUMN pilot_id INTEGER");
-            } catch(PDOException $e) {
-                // Column might already exist, ignore error
-            }
+            // No more used pilot_id
 
             // Add minimum_quantity column to plane_stocks if it doesn't exist
             try {
@@ -162,19 +152,7 @@ class Database {
             }
 
             // Insert sample pilots if table is empty
-            $stmt = $this->db->query("SELECT COUNT(*) FROM pilots");
-            $count = $stmt->fetchColumn();
-
-            if ($count == 0) {
-                $this->db->exec("
-                    INSERT INTO pilots (name) VALUES
-                    ('Juan Pérez'),
-                    ('María García'),
-                    ('Carlos López'),
-                    ('Ana Rodríguez'),
-                    ('Luis Martínez')
-                ");
-            }
+            // No more pilots, so we skip this
 
             // Insert sample doctors if table is empty
             $stmt = $this->db->query("SELECT COUNT(*) FROM doctors");

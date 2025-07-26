@@ -204,13 +204,9 @@ class WarehouseApp {
       case "tickets":
         await this.loadTickets();
         await this.loadPlanesForTickets();
-        await this.loadPilotsForTickets();
         await this.loadDoctorsForTickets();
         // Set today's date as default for new tickets
         this.setDefaultTicketDate();
-        break;
-      case "pilots":
-        await this.loadPilots();
         break;
       case "doctors":
         await this.loadDoctors();
@@ -562,14 +558,7 @@ class WarehouseApp {
         const totalCost = parseFloat(ticket.total_cost || 0);
 
         // Format pilots
-        const pilotsHtml =
-          ticket.pilots && ticket.pilots.length > 0
-            ? ticket.pilots
-                .map((p) => `<span class="pilot-tag">${p.name}</span>`)
-                .join(" ")
-            : '<span class="no-data">Sin pilotos</span>';
-
-        console.log(`🎫 Ticket ${ticket.id} pilots:`, ticket.pilots);
+        // Ya no usamos pilotos en tickets
 
         // Format doctors
         const doctorsHtml =
@@ -585,7 +574,6 @@ class WarehouseApp {
         row.innerHTML = `
                     <td>${ticket.ticket_number}</td>
                     <td>${ticket.plane_name || "N/A"}</td>
-                    <td class="pilots-list">${pilotsHtml}</td>
                     <td class="doctors-list">${doctorsHtml}</td>
                     <td>${ticket.description || ""}</td>
                     <td>${displayDate}</td>
@@ -624,12 +612,7 @@ class WarehouseApp {
     const ticketDate = document.getElementById("ticketDate").value;
 
     // Get selected pilots
-    const selectedPilots = [];
-    document
-      .querySelectorAll('#ticketPilots input[type="checkbox"]:checked')
-      .forEach((checkbox) => {
-        selectedPilots.push(parseInt(checkbox.value));
-      });
+    // Ya no lo usamos
 
     // Get selected doctors
     const selectedDoctors = [];
@@ -644,17 +627,11 @@ class WarehouseApp {
       return;
     }
 
-    if (selectedPilots.length === 0) {
-      alert("Please select at least one pilot");
-      return;
-    }
-
     try {
       const isEditing = ticketId && ticketId.trim() !== "";
       const method = isEditing ? "PUT" : "POST";
       const requestBody = {
         plane_id: planeId,
-        pilot_ids: selectedPilots,
         doctor_ids: selectedDoctors,
         ticket_number: ticketNumber,
         description: description,
@@ -798,34 +775,10 @@ class WarehouseApp {
         }
 
         // Clear all pilot checkboxes first
-        console.log("🧑‍✈️ Clearing pilot checkboxes...");
-        try {
-          document
-            .querySelectorAll('#ticketPilots input[type="checkbox"]')
-            .forEach((cb) => {
-              cb.checked = false;
-            });
-        } catch (error) {
-          console.error("❌ Error clearing pilot checkboxes:", error);
-        }
+        // No más pilotos en tickets
 
         // Check the pilots assigned to this ticket
-        if (ticket.pilots && ticket.pilots.length > 0) {
-          console.log("🧑‍✈️ Setting pilot checkboxes:", ticket.pilots);
-          ticket.pilots.forEach((pilot) => {
-            try {
-              const checkbox = document.getElementById(`pilot_${pilot.id}`);
-              if (checkbox) {
-                checkbox.checked = true;
-                console.log(`✅ Checked pilot ${pilot.id}`);
-              } else {
-                console.log(`❌ Pilot checkbox not found: pilot_${pilot.id}`);
-              }
-            } catch (error) {
-              console.error(`❌ Error setting pilot ${pilot.id}:`, error);
-            }
-          });
-        }
+        // No more pilots
 
         // Clear all doctor checkboxes first
         console.log("👨‍⚕️ Clearing doctor checkboxes...");
@@ -921,9 +874,6 @@ class WarehouseApp {
       .split("T")[0];
 
     // Uncheck all checkboxes
-    document
-      .querySelectorAll('#ticketPilots input[type="checkbox"]')
-      .forEach((cb) => (cb.checked = false));
     document
       .querySelectorAll('#ticketDoctors input[type="checkbox"]')
       .forEach((cb) => (cb.checked = false));
@@ -1132,12 +1082,7 @@ class WarehouseApp {
     const description = document.getElementById("ticketDescription").value;
 
     // Get selected pilots
-    const selectedPilots = [];
-    document
-      .querySelectorAll('#ticketPilots input[type="checkbox"]:checked')
-      .forEach((checkbox) => {
-        selectedPilots.push(parseInt(checkbox.value));
-      });
+    // Ya no lo usamos
 
     // Get selected doctors
     const selectedDoctors = [];
@@ -1152,17 +1097,11 @@ class WarehouseApp {
       return;
     }
 
-    if (selectedPilots.length === 0) {
-      alert("Please select at least one pilot");
-      return;
-    }
-
     try {
       const isEditing = ticketId && ticketId.trim() !== "";
       const method = isEditing ? "PUT" : "POST";
       const requestBody = {
         plane_id: planeId,
-        pilot_ids: selectedPilots,
         doctor_ids: selectedDoctors,
         ticket_number: ticketNumber,
         description: description,
