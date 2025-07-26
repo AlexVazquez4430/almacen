@@ -24,14 +24,7 @@ CREATE TABLE IF NOT EXISTS doctors (
 );
 
 -- Create ticket_pilots junction table (many-to-many relationship)
-CREATE TABLE IF NOT EXISTS ticket_pilots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ticket_id INTEGER NOT NULL,
-    pilot_id INTEGER NOT NULL,
-    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
-    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
-    UNIQUE(ticket_id, pilot_id)
-);
+-- Ya no usamos esta tabla no existe
 
 -- Create ticket_doctors junction table (many-to-many relationship)
 CREATE TABLE IF NOT EXISTS ticket_doctors (

@@ -94,13 +94,7 @@ class WarehouseApp {
 
       // Only handle horizontal swipes
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-        const sections = [
-          "warehouse",
-          "planes",
-          "tickets",
-          "pilots",
-          "doctors",
-        ];
+        const sections = ["warehouse", "planes", "tickets", "doctors"];
         const currentIndex = sections.indexOf(this.currentSection);
 
         if (diffX > 0 && currentIndex < sections.length - 1) {
@@ -1110,27 +1104,7 @@ class WarehouseApp {
   }
 
   // Load pilots for ticket form (multi-select)
-  async loadPilotsForTickets() {
-    try {
-      const response = await fetch("api/pilots.php");
-      const pilots = await response.json();
-
-      const container = document.getElementById("ticketPilots");
-      container.innerHTML = "";
-
-      pilots.forEach((pilot) => {
-        const div = document.createElement("div");
-        div.className = "multi-select-item";
-        div.innerHTML = `
-                    <input type="checkbox" id="pilot_${pilot.id}" value="${pilot.id}">
-                    <label for="pilot_${pilot.id}">${pilot.name}</label>
-                `;
-        container.appendChild(div);
-      });
-    } catch (error) {
-      console.error("Error loading pilots for tickets:", error);
-    }
-  }
+  // Ya no hace log in
 
   // Filter methods
   applyFilters() {

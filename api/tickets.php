@@ -53,14 +53,7 @@ try {
                     // Get pilots and doctors for this ticket
                     foreach ($tickets as &$ticket) {
                         // Get pilots for this ticket
-                        $pilotStmt = $db->prepare("
-                            SELECT p.id, p.name
-                            FROM pilots p
-                            JOIN ticket_pilots tp ON p.id = tp.pilot_id
-                            WHERE tp.ticket_id = ?
-                        ");
-                        $pilotStmt->execute([$ticket['id']]);
-                        $ticket['pilots'] = $pilotStmt->fetchAll(PDO::FETCH_ASSOC);
+                        // Deleted
 
                         // Get doctors for this ticket
                         $doctorStmt = $db->prepare("
@@ -97,8 +90,6 @@ try {
                         ) as total_cost
                     FROM tickets t
                     LEFT JOIN planes p ON t.plane_id = p.id
-                    LEFT JOIN ticket_pilots tp ON t.id = tp.ticket_id
-                    LEFT JOIN pilots pi ON tp.pilot_id = pi.id
                     LEFT JOIN ticket_doctors td ON t.id = td.ticket_id
                     LEFT JOIN doctors d ON td.doctor_id = d.id
                     WHERE 1=1
@@ -134,16 +125,7 @@ try {
                 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 // Get pilots and doctors for each ticket
-                foreach ($tickets as &$ticket) {
-                    // Get pilots for this ticket
-                    $pilotStmt = $db->prepare("
-                        SELECT pi.id, pi.name
-                        FROM ticket_pilots tp
-                        JOIN pilots pi ON tp.pilot_id = pi.id
-                        WHERE tp.ticket_id = ?
-                    ");
-                    $pilotStmt->execute([$ticket['id']]);
-                    $ticket['pilots'] = $pilotStmt->fetchAll(PDO::FETCH_ASSOC);
+                // Ya no los obtenemos
 
                     // Get doctors for this ticket
                     $doctorStmt = $db->prepare("
@@ -184,14 +166,7 @@ try {
                 $ticketId = $db->lastInsertId();
 
                 // Add pilots to the ticket
-                if (isset($data['pilot_ids']) && is_array($data['pilot_ids'])) {
-                    $pilotStmt = $db->prepare("INSERT INTO ticket_pilots (ticket_id, pilot_id) VALUES (?, ?)");
-                    foreach ($data['pilot_ids'] as $pilotId) {
-                        if (!empty($pilotId)) {
-                            $pilotStmt->execute([$ticketId, $pilotId]);
-                        }
-                    }
-                }
+                // Ya no hace insert
 
                 // Add doctors to the ticket
                 if (isset($data['doctor_ids']) && is_array($data['doctor_ids'])) {
@@ -232,18 +207,11 @@ try {
                 ]);
 
                 // Remove existing pilot assignments
-                $stmt = $db->prepare("DELETE FROM ticket_pilots WHERE ticket_id = ?");
-                $stmt->execute([$data['id']]);
+                // Ya no se usa para pilotos
 
                 // Add new pilot assignments
-                if (isset($data['pilot_ids']) && is_array($data['pilot_ids'])) {
-                    $pilotStmt = $db->prepare("INSERT INTO ticket_pilots (ticket_id, pilot_id) VALUES (?, ?)");
-                    foreach ($data['pilot_ids'] as $pilotId) {
-                        if (!empty($pilotId)) {
-                            $pilotStmt->execute([$data['id'], $pilotId]);
-                        }
-                    }
-                }
+                // Ya no se usa
+
 
                 // Remove existing doctor assignments
                 $stmt = $db->prepare("DELETE FROM ticket_doctors WHERE ticket_id = ?");
