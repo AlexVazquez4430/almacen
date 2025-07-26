@@ -1,245 +1,339 @@
 <!DOCTYPE html>
 <!-- index.html -->
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="Sistema de gestión de almacén con control de inventario, aviones, tickets, pilotos y médicos">
-    <meta name="theme-color" content="#3498db">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Almacén">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta
+      name="description"
+      content="Sistema de gestión de almacén con control de inventario, aviones, tickets, pilotos y médicos"
+    />
+    <meta name="theme-color" content="#3498db" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Almacén" />
     <title>Sistema de almacén</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMzQ5OGRiIiByeD0iMjQiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xOSAzSDVjLTEuMSAwLTIgLjktMiAydjE0YzAgMS4xLjkgMiAyIDJoMTRjMS4xIDAgMi0uOSAyLTJWNWMwLTEuMS0uOS0yLTItMnptLTUgMTRIN3YtMmg3djJ6bTMtNEg3di0yaDEwdjJ6bTAtNEg3VjdoMTB2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo=">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="manifest" href="manifest.json" />
+    <link
+      rel="apple-touch-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMzQ5OGRiIiByeD0iMjQiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xOSAzSDVjLTEuMSAwLTIgLjktMiAydjE0YzAgMS4xLjkgMiAyIDJoMTRjMS4xIDAgMi0uOSAyLTJWNWMwLTEuMS0uOS0yLTItMnptLTUgMTRIN3YtMmg3djJ6bTMtNEg3di0yaDEwdjJ6bTAtNEg3VjdoMTB2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo="
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <div class="header-content">
-                <h1>Sistema de Almacén</h1>
-                <div class="user-info">
-                    <span id="welcomeMessage">Bienvenido, <span id="currentUser">Usuario</span></span>
-                    <button id="logoutBtn" class="logout-btn" onclick="logout()">Cerrar Sesión</button>
-                </div>
-            </div>
-            <nav>
-                <button class="nav-btn active" onclick="showSection('warehouse')">Alamacén</button>
-                <button class="nav-btn" onclick="showSection('planes')">Aviones</button>
-                <button class="nav-btn" onclick="showSection('tickets')">Tickets</button>
-                <button class="nav-btn" onclick="showSection('pilots')">Pilotos</button>
-                <button class="nav-btn" onclick="showSection('doctors')">Médicos</button>
-            </nav>
-        </header>
+      <header>
+        <div class="header-content">
+          <h1>Sistema de Almacén</h1>
+          <div class="user-info">
+            <span id="welcomeMessage"
+              >Bienvenido, <span id="currentUser">Usuario</span></span
+            >
+            <button id="logoutBtn" class="logout-btn" onclick="logout()">
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+        <nav>
+          <button class="nav-btn active" onclick="showSection('warehouse')">
+            Alamacén
+          </button>
+          <button class="nav-btn" onclick="showSection('planes')">
+            Aviones
+          </button>
+          <button class="nav-btn" onclick="showSection('tickets')">
+            Tickets
+          </button>
+          <button class="nav-btn" onclick="showSection('doctors')">
+            Médicos
+          </button>
+        </nav>
+      </header>
 
-        <!-- Warehouse Section -->
-        <section id="warehouse" class="section active">
-            <h2>Almacén/Cedis</h2>
-            
-            <div class="form-container">
-                <h3 id="productFormTitle">Añadir producto</h3>
-                <form id="productForm">
-                    <input type="hidden" id="productId">
-                    <input type="text" id="productName" placeholder="Nombre del producto" required>
-                    <input type="text" id="productDescription" placeholder="Descripcion">
-                    <input type="number" id="productPrice" placeholder="Precio" step="0.01" min="0" required>
-                    <input type="number" id="productStock" placeholder="Stock inicial" min="0" required>
-                    <button type="submit" id="productSubmitBtn">Añadir producto</button>
-                    <button type="button" id="productCancelBtn" onclick="app.cancelProductEdit()" style="display: none;">Cancelar</button>
-                </form>
-            </div>
+      <!-- Warehouse Section -->
+      <section id="warehouse" class="section active">
+        <h2>Almacén/Cedis</h2>
 
-            <div class="table-container">
-                <h3>Productos</h3>
-                <table id="productsTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Descripcion</th>
-                            <th>Precio</th>
-                            <th>Stock</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
+        <div class="form-container">
+          <h3 id="productFormTitle">Añadir producto</h3>
+          <form id="productForm">
+            <input type="hidden" id="productId" />
+            <input
+              type="text"
+              id="productName"
+              placeholder="Nombre del producto"
+              required
+            />
+            <input
+              type="text"
+              id="productDescription"
+              placeholder="Descripcion"
+            />
+            <input
+              type="number"
+              id="productPrice"
+              placeholder="Precio"
+              step="0.01"
+              min="0"
+              required
+            />
+            <input
+              type="number"
+              id="productStock"
+              placeholder="Stock inicial"
+              min="0"
+              required
+            />
+            <button type="submit" id="productSubmitBtn">Añadir producto</button>
+            <button
+              type="button"
+              id="productCancelBtn"
+              onclick="app.cancelProductEdit()"
+              style="display: none"
+            >
+              Cancelar
+            </button>
+          </form>
+        </div>
 
-        <!-- Planes Section -->
-        <section id="planes" class="section">
-            <h2>Administración de Aviones</h2>
-            
-            <div class="form-container">
-                <h3 id="planeFormTitle">Añadir Avión</h3>
-                <form id="planeForm">
-                    <input type="hidden" id="planeId">
-                    <input type="text" id="planeName" placeholder="Nombre del avión" required>
-                    <input type="text" id="planeDescription" placeholder="Descripcion">
-                    <button type="submit" id="planeSubmitBtn">Añadir Avión</button>
-                    <button type="button" id="planeCancelBtn" onclick="app.cancelPlaneEdit()" style="display: none;">Cancelar</button>
-                </form>
-            </div>
+        <div class="table-container">
+          <h3>Productos</h3>
+          <table id="productsTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
 
-            <div class="table-container">
-                <h3>Aviones</h3>
-                <table id="planesTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+      <!-- Planes Section -->
+      <section id="planes" class="section">
+        <h2>Administración de Aviones</h2>
 
-            <div id="planeDetails" class="plane-details" style="display: none;">
-                <h3>Manejo de almacenamiento de los aviones</h3>
-                <div id="planeStockContainer"></div>
-            </div>
-        </section>
+        <div class="form-container">
+          <h3 id="planeFormTitle">Añadir Avión</h3>
+          <form id="planeForm">
+            <input type="hidden" id="planeId" />
+            <input
+              type="text"
+              id="planeName"
+              placeholder="Nombre del avión"
+              required
+            />
+            <input
+              type="text"
+              id="planeDescription"
+              placeholder="Descripcion"
+            />
+            <button type="submit" id="planeSubmitBtn">Añadir Avión</button>
+            <button
+              type="button"
+              id="planeCancelBtn"
+              onclick="app.cancelPlaneEdit()"
+              style="display: none"
+            >
+              Cancelar
+            </button>
+          </form>
+        </div>
 
-        <!-- Tickets Section -->
-        <section id="tickets" class="section">
-            <h2>Menejo de Tickets</h2>
+        <div class="table-container">
+          <h3>Aviones</h3>
+          <table id="planesTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-            <div class="form-container">
-                <h3 id="ticketFormTitle">Crear Ticket</h3>
-                <form id="ticketForm">
-                    <input type="hidden" id="ticketId">
-                    <select id="ticketPlane" required>
-                        <option value="">Seleccionar Avión</option>
-                    </select>
+        <div id="planeDetails" class="plane-details" style="display: none">
+          <h3>Manejo de almacenamiento de los aviones</h3>
+          <div id="planeStockContainer"></div>
+        </div>
+      </section>
 
-                    <div class="multi-select-container">
-                        <label>Pilotos:</label>
-                        <div id="ticketPilots" class="multi-select">
-                            <!-- Pilots will be loaded here -->
-                        </div>
-                    </div>
+      <!-- Tickets Section -->
+      <section id="tickets" class="section">
+        <h2>Menejo de Tickets</h2>
 
-                    <div class="multi-select-container">
-                        <label>Médicos:</label>
-                        <div id="ticketDoctors" class="multi-select">
-                            <!-- Doctors will be loaded here -->
-                        </div>
-                    </div>
+        <div class="form-container">
+          <h3 id="ticketFormTitle">Crear Ticket</h3>
+          <form id="ticketForm">
+            <input type="hidden" id="ticketId" />
+            <select id="ticketPlane" required>
+              <option value="">Seleccionar Avión</option>
+            </select>
 
-                    <input type="text" id="ticketNumber" placeholder="Numero de Ticket" required>
-                    <input type="text" id="ticketDescription" placeholder="Descripcion">
-                    <label for="ticketDate">Fecha del Ticket:</label>
-                    <input type="date" id="ticketDate" required>
-                    <button type="submit" id="ticketSubmitBtn">Crear Ticket</button>
-                    <button type="button" id="ticketCancelBtn" onclick="app.cancelTicketEdit()" style="display: none;">Cancelar</button>
-                </form>
-            </div>
-
-            <!-- Filters Section -->
-            <div class="filters-container">
-                <h3>Filtros</h3>
-                <div class="filters-row">
-                    <input type="text" id="filterPilot" placeholder="Filtrar por piloto">
-                    <input type="text" id="filterDoctor" placeholder="Filtrar por médico">
-                    <input type="date" id="filterDate" placeholder="Filtrar por fecha">
-                    <input type="text" id="filterDescription" placeholder="Filtrar por descripción">
-                    <button onclick="app.applyFilters()">Aplicar Filtros</button>
-                    <button onclick="app.clearFilters()">Limpiar Filtros</button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <h3>Tickets</h3>
-                <table id="ticketsTable">
-                    <thead>
-                        <tr>
-                            <th>Ticket #</th>
-                            <th>Avión</th>
-                            <th>Pilotos</th>
-                            <th>Médicos</th>
-                            <th>Descripcion</th>
-                            <th>Fecha</th>
-                            <th>Total Cost</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div id="ticketDetails" class="ticket-details" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles del Ticket</h3>
-                    <button onclick="document.getElementById('ticketDetails').style.display='none'" class="btn-small btn-secondary">Cerrar</button>
-                </div>
-                <div id="ticketItemsContainer"></div>
-            </div>
-        </section>
-
-        <!-- Pilots Section -->
-        <section id="pilots" class="section">
-            <h2>Pilotos</h2>
-
-            <div class="form-container">
-                <h3 id="pilotFormTitle">Añadir Piloto</h3>
-                <form id="pilotForm">
-                    <input type="hidden" id="pilotId">
-                    <input type="text" id="pilotName" placeholder="Nombre del Piloto" required>
-                    <div class="form-buttons">
-                        <button type="submit" id="pilotSubmitBtn">Añadir Piloto</button>
-                        <button type="button" id="pilotCancelBtn" onclick="app.cancelPilotEdit()" style="display: none;">Cancelar</button>
-                    </div>
-                </form>
+            <div class="multi-select-container">
+              <label>Pilotos:</label>
+              <div id="ticketPilots" class="multi-select">
+                <!-- Pilots will be loaded here -->
+              </div>
             </div>
 
-            <div class="table-container">
-                <h3>Pilotos</h3>
-                <table id="pilotsTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Doctors Section -->
-        <section id="doctors" class="section">
-            <h2>Médicos</h2>
-
-            <div class="form-container">
-                <h3 id="doctorFormTitle">Añadir Médico</h3>
-                <form id="doctorForm">
-                    <input type="hidden" id="doctorId">
-                    <input type="text" id="doctorName" placeholder="Nombre del Médico" required>
-                    <div class="form-buttons">
-                        <button type="submit" id="doctorSubmitBtn">Añadir Médico</button>
-                        <button type="button" id="doctorCancelBtn" onclick="app.cancelDoctorEdit()" style="display: none;">Cancelar</button>
-                    </div>
-                </form>
+            <div class="multi-select-container">
+              <label>Médicos:</label>
+              <div id="ticketDoctors" class="multi-select">
+                <!-- Doctors will be loaded here -->
+              </div>
             </div>
 
-            <div class="table-container">
-                <h3>Médicos</h3>
-                <table id="doctorsTable">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <input
+              type="text"
+              id="ticketNumber"
+              placeholder="Numero de Ticket"
+              required
+            />
+            <input
+              type="text"
+              id="ticketDescription"
+              placeholder="Descripcion"
+            />
+            <label for="ticketDate">Fecha del Ticket:</label>
+            <input type="date" id="ticketDate" required />
+            <button type="submit" id="ticketSubmitBtn">Crear Ticket</button>
+            <button
+              type="button"
+              id="ticketCancelBtn"
+              onclick="app.cancelTicketEdit()"
+              style="display: none"
+            >
+              Cancelar
+            </button>
+          </form>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-container">
+          <h3>Filtros</h3>
+          <div class="filters-row">
+            <input
+              type="text"
+              id="filterPilot"
+              placeholder="Filtrar por piloto"
+            />
+            <input
+              type="text"
+              id="filterDoctor"
+              placeholder="Filtrar por médico"
+            />
+            <input
+              type="date"
+              id="filterDate"
+              placeholder="Filtrar por fecha"
+            />
+            <input
+              type="text"
+              id="filterDescription"
+              placeholder="Filtrar por descripción"
+            />
+            <button onclick="app.applyFilters()">Aplicar Filtros</button>
+            <button onclick="app.clearFilters()">Limpiar Filtros</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <h3>Tickets</h3>
+          <table id="ticketsTable">
+            <thead>
+              <tr>
+                <th>Ticket #</th>
+                <th>Avión</th>
+                <th>Pilotos</th>
+                <th>Médicos</th>
+                <th>Descripcion</th>
+                <th>Fecha</th>
+                <th>Total Cost</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="ticketDetails" class="ticket-details" style="display: none">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+            "
+          >
+            <h3>Detalles del Ticket</h3>
+            <button
+              onclick="document.getElementById('ticketDetails').style.display='none'"
+              class="btn-small btn-secondary"
+            >
+              Cerrar
+            </button>
+          </div>
+          <div id="ticketItemsContainer"></div>
+        </div>
+      </section>
+
+      <!-- Pilots Section -->
+      <!-- Pilot deleted -->
+
+      <!-- Doctors Section -->
+      <section id="doctors" class="section">
+        <h2>Médicos</h2>
+
+        <div class="form-container">
+          <h3 id="doctorFormTitle">Añadir Médico</h3>
+          <form id="doctorForm">
+            <input type="hidden" id="doctorId" />
+            <input
+              type="text"
+              id="doctorName"
+              placeholder="Nombre del Médico"
+              required
+            />
+            <div class="form-buttons">
+              <button type="submit" id="doctorSubmitBtn">Añadir Médico</button>
+              <button
+                type="button"
+                id="doctorCancelBtn"
+                onclick="app.cancelDoctorEdit()"
+                style="display: none"
+              >
+                Cancelar
+              </button>
             </div>
-        </section>
+          </form>
+        </div>
+
+        <div class="table-container">
+          <h3>Médicos</h3>
+          <table id="doctorsTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <script src="js/app.js?v=2.0"></script>
-</body>
+  </body>
 </html>
