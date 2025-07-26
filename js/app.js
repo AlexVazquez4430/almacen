@@ -165,11 +165,6 @@ class WarehouseApp {
       this.createTicket();
     });
 
-    document.getElementById("pilotForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      this.savePilot();
-    });
-
     document.getElementById("doctorForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.saveDoctor();
