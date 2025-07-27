@@ -223,8 +223,15 @@ class WarehouseApp {
     const price = document.getElementById("productPrice").value;
     const stock = document.getElementById("productStock").value;
     const id = document.getElementById("productId").value;
+    const productminstock = document.getElementById("productminstock").value;
 
-    const data = { name, description, price, total_stock: stock };
+    const data = {
+      name,
+      description,
+      price,
+      total_stock: stock,
+      productminstock,
+    };
 
     try {
       let response;
@@ -270,6 +277,7 @@ class WarehouseApp {
                     <td>${product.description || ""}</td>
                     <td>$${parseFloat(product.price).toFixed(2)}</td>
                     <td>${product.total_stock}</td>
+                    <td>${product.minimun_stock}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editProduct(${
                           product.id
@@ -300,6 +308,8 @@ class WarehouseApp {
             product.description || "";
           document.getElementById("productPrice").value = product.price;
           document.getElementById("productStock").value = product.total_stock;
+          document.getElementById("productminstock").value =
+            product.minimun_stock;
 
           document.getElementById("productFormTitle").textContent =
             "Editar Producto";

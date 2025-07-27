@@ -25,6 +25,7 @@ class Database {
                     description TEXT,
                     price DECIMAL(10,2) DEFAULT 0.00,
                     total_stock INTEGER DEFAULT 0,
+                    minimun_stock INTEGER DEFAULT 0,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ");

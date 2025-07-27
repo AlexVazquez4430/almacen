@@ -54,12 +54,13 @@ try {
             }
             
             try {
-                $stmt = $db->prepare("INSERT INTO products (name, description, price, total_stock) VALUES (?, ?, ?, ?)");
+                $stmt = $db->prepare("INSERT INTO products (name, description, price, total_stock, minimun_stock) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $data['name'], 
                     $data['description'] ?? '', 
                     $data['price'], 
-                    $data['stock']
+                    $data['stock'],
+                    $data['productminstock']
                 ]);
                 echo json_encode(['success' => true]);
             } catch(PDOException $e) {
@@ -81,12 +82,13 @@ try {
                     $stmt->execute([$data['stock'], $data['id']]);
                 } else {
                     // Update all fields
-                    $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price = ?, total_stock = ? WHERE id = ?");
+                    $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price = ?, total_stock = ?, minimun_stock = ? WHERE id = ?");
                     $stmt->execute([
                         $data['name'], 
                         $data['description'] ?? '', 
                         $data['price'], 
                         $data['total_stock'], 
+                        $data['productminstock'],
                         $data['id']
                     ]);
                 }
