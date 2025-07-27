@@ -653,27 +653,75 @@ tr:hover {
         background-color: #1a1a1a;
         color: #e0e0e0;
     }
-    
+
     .container, .section, header, .form-container, .filters-container {
         background: #2d2d2d;
         color: #e0e0e0;
     }
-    
+
     input, select, textarea {
         background: #3d3d3d;
         border-color: #555;
         color: #e0e0e0;
     }
-    
+
     table {
         background: #2d2d2d;
     }
-    
+
     th {
         background: #3d3d3d;
     }
-    
+
     tr:hover {
         background: #3d3d3d;
+    }
+}
+
+/* Low stock warning styles */
+.low-stock {
+    background-color: #ffebee !important;
+    color: #c62828 !important;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.low-stock td {
+    color: #c62828 !important;
+    border-color: #ef5350 !important;
+}
+
+.low-stock:hover {
+    background-color: #ffcdd2 !important;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(198, 40, 40, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(198, 40, 40, 0);
+    }
+}
+
+/* Dark mode support for low stock */
+@media (prefers-color-scheme: dark) {
+    .low-stock {
+        background-color: #3e2723 !important;
+        color: #ffab91 !important;
+    }
+
+    .low-stock td {
+        color: #ffab91 !important;
+        border-color: #d32f2f !important;
+    }
+
+    .low-stock:hover {
+        background-color: #4e342e !important;
     }
 }

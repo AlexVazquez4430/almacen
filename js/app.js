@@ -270,13 +270,27 @@ class WarehouseApp {
       const tbody = document.querySelector("#productsTable tbody");
       tbody.innerHTML = "";
 
+      // Count low stock products
+      let lowStockCount = 0;
+
       products.forEach((product) => {
         const row = tbody.insertRow();
+
+        // Check if stock is below minimum
+        const isLowStock = parseInt(product.total_stock) < parseInt(product.minimun_stock);
+        if (isLowStock) {
+          row.classList.add('low-stock');
+          lowStockCount++;
+        }
+
         row.innerHTML = `
                     <td>${product.name}</td>
                     <td>${product.description || ""}</td>
                     <td>$${parseFloat(product.price).toFixed(2)}</td>
-                    <td>${product.total_stock}</td>
+                    <td>
+                        ${product.total_stock}
+                        ${isLowStock ? '<span style="margin-left: 8px; font-size: 1.2em;" title="Stock bajo">⚠️</span>' : ''}
+                    </td>
                     <td>${product.minimun_stock}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editProduct(${
@@ -291,6 +305,18 @@ class WarehouseApp {
                     </td>
                 `;
       });
+
+      // Update low stock alert
+      const lowStockAlert = document.getElementById('lowStockAlert');
+      const lowStockCountElement = document.getElementById('lowStockCount');
+
+      if (lowStockCount > 0) {
+        lowStockAlert.style.display = 'block';
+        lowStockCountElement.textContent = lowStockCount;
+      } else {
+        lowStockAlert.style.display = 'none';
+      }
+
     } catch (error) {
       console.error("Error loading products:", error);
     }
