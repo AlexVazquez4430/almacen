@@ -1,3 +1,95 @@
+// Global functions - deben estar disponibles inmediatamente
+function toggleDarkMode() {
+  // Agregar feedback visual inmediato
+  const button = document.getElementById("darkModeToggle");
+  if (button) {
+    button.style.transform = "scale(0.9)";
+    setTimeout(() => {
+      button.style.transform = "";
+    }, 150);
+  }
+
+  // Cambiar el modo oscuro directamente
+  const html = document.documentElement;
+  const isDark = html.hasAttribute("data-theme");
+
+  if (isDark) {
+    html.removeAttribute("data-theme");
+    localStorage.setItem("theme", "light");
+    if (button) {
+      button.innerHTML = "🌙";
+      button.title = "Cambiar a modo oscuro";
+    }
+  } else {
+    html.setAttribute("data-theme", "dark");
+    localStorage.setItem("theme", "dark");
+    if (button) {
+      button.innerHTML = "☀️";
+      button.title = "Cambiar a modo claro";
+    }
+  }
+
+  // Si la app está disponible, sincronizar el estado
+  if (
+    typeof app !== "undefined" &&
+    app &&
+    typeof app.toggleDarkMode === "function"
+  ) {
+    // Solo actualizar el estado interno, no cambiar el tema nuevamente
+    app.darkMode = !isDark;
+  }
+}
+
+function showSection(section) {
+  if (
+    typeof app !== "undefined" &&
+    app &&
+    typeof app.showSection === "function"
+  ) {
+    app.showSection(section);
+  }
+}
+
+function cancelPlaneStockManagement() {
+  if (
+    typeof app !== "undefined" &&
+    app &&
+    typeof app.cancelPlaneStockManagement === "function"
+  ) {
+    app.cancelPlaneStockManagement();
+  }
+}
+
+async function logout() {
+  if (confirm("¿Está seguro de que desea cerrar sesión?")) {
+    try {
+      const response = await fetch("api/auth.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+        body: JSON.stringify({
+          action: "logout",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        window.location.href = "login.html";
+      } else {
+        alert("Error al cerrar sesión");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Error de conexión al cerrar sesión");
+    }
+  }
+}
+
 class WarehouseApp {
   constructor() {
     this.currentSection = "warehouse";
@@ -299,21 +391,28 @@ class WarehouseApp {
     // Mejorar respuesta del botón de modo oscuro en móviles
     const darkModeToggle = document.getElementById("darkModeToggle");
     if (darkModeToggle) {
-      // Agregar múltiples tipos de eventos para mejor compatibilidad
+      // Remover el onclick del HTML para evitar conflictos
+      darkModeToggle.removeAttribute("onclick");
+
+      // Agregar evento click que funciona en todos los dispositivos
+      darkModeToggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleDarkMode();
+      });
+
+      // Agregar evento táctil para móviles
       darkModeToggle.addEventListener(
         "touchstart",
         (e) => {
           e.preventDefault();
+          e.stopPropagation();
           this.toggleDarkMode();
         },
         { passive: false }
       );
 
-      darkModeToggle.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.toggleDarkMode();
-      });
-
+      // Agregar soporte para teclado
       darkModeToggle.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -1888,72 +1987,15 @@ class WarehouseApp {
   }
 }
 
-// Global function for navigation
-function showSection(section) {
-  if (app && typeof app.showSection === "function") {
-    app.showSection(section);
-  } else {
-    console.error("App not available or showSection is not a function");
+// Inicializar modo oscuro temprano
+(function () {
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    document.documentElement.setAttribute("data-theme", "dark");
   }
-}
-
-// Global function for dark mode toggle
-function toggleDarkMode() {
-  // Prevenir el comportamiento por defecto
-  event?.preventDefault();
-  event?.stopPropagation();
-
-  // Agregar feedback visual inmediato
-  const button = document.getElementById("darkModeToggle");
-  if (button) {
-    button.style.transform = "scale(0.9)";
-    setTimeout(() => {
-      button.style.transform = "";
-    }, 150);
-  }
-
-  if (app && typeof app.toggleDarkMode === "function") {
-    app.toggleDarkMode();
-  } else {
-    console.error("App not available or toggleDarkMode is not a function");
-  }
-}
-
-// Global function for canceling plane stock management
-function cancelPlaneStockManagement() {
-  app.cancelPlaneStockManagement();
-}
-
-// Global logout function
-async function logout() {
-  if (confirm("¿Está seguro de que desea cerrar sesión?")) {
-    try {
-      const response = await fetch("api/auth.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-        body: JSON.stringify({
-          action: "logout",
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        window.location.href = "login.html";
-      } else {
-        alert("Error al cerrar sesión");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      alert("Error de conexión al cerrar sesión");
-    }
-  }
-}
+})();
 
 // Initialize the app
 const app = new WarehouseApp();

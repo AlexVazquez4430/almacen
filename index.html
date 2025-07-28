@@ -30,6 +30,19 @@
       href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMzQ5OGRiIiByeD0iMjQiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xOSAzSDVjLTEuMSAwLTIgLjktMiAydjE0YzAgMS4xLjkgMiAyIDJoMTRjMS4xIDAgMi0uOSAyLTJWNWMwLTEuMS0uOS0yLTItMnptLTUgMTRIN3YtMmg3djJ6bTMtNEg3di0yaDEwdjJ6bTAtNEg3VjdoMTB2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo="
     />
     <link rel="stylesheet" href="css/style.css" />
+    <script>
+      // Inicializar modo oscuro inmediatamente
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div class="container">
@@ -44,7 +57,6 @@
               id="darkModeToggle"
               class="dark-mode-toggle"
               onclick="toggleDarkMode()"
-              ontouchstart="toggleDarkMode()"
               title="Alternar modo oscuro"
             >
               🌙
@@ -365,5 +377,12 @@
     </div>
 
     <script src="js/app.js?v=2.0"></script>
+    <script>
+      // Asegurar que las funciones globales estén disponibles
+      window.toggleDarkMode = toggleDarkMode;
+      window.showSection = showSection;
+      window.cancelPlaneStockManagement = cancelPlaneStockManagement;
+      window.logout = logout;
+    </script>
   </body>
 </html>
