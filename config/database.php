@@ -156,19 +156,8 @@ class Database {
             // No more pilots, so we skip this
 
             // Insert sample doctors if table is empty
-            $stmt = $this->db->query("SELECT COUNT(*) FROM doctors");
-            $doctorCount = $stmt->fetchColumn();
+            // Not more
 
-            if ($doctorCount == 0) {
-                $this->db->exec("
-                    INSERT INTO doctors (name) VALUES
-                    ('Dr. Roberto Sánchez'),
-                    ('Dra. Carmen Morales'),
-                    ('Dr. Fernando Jiménez'),
-                    ('Dra. Patricia Vega'),
-                    ('Dr. Miguel Torres')
-                ");
-            }
 
             // Insert default administrator user if table is empty
             $stmt = $this->db->query("SELECT COUNT(*) FROM users");
