@@ -105,6 +105,14 @@ class WarehouseApp {
   }
 
   toggleDarkMode() {
+    // Prevenir múltiples clics rápidos
+    if (this.isToggling) return;
+    this.isToggling = true;
+
+    setTimeout(() => {
+      this.isToggling = false;
+    }, 300);
+
     if (this.darkMode) {
       this.disableDarkMode();
     } else {
@@ -287,6 +295,32 @@ class WarehouseApp {
       e.preventDefault();
       this.saveDoctor();
     });
+
+    // Mejorar respuesta del botón de modo oscuro en móviles
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    if (darkModeToggle) {
+      // Agregar múltiples tipos de eventos para mejor compatibilidad
+      darkModeToggle.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          this.toggleDarkMode();
+        },
+        { passive: false }
+      );
+
+      darkModeToggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.toggleDarkMode();
+      });
+
+      darkModeToggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          this.toggleDarkMode();
+        }
+      });
+    }
   }
 
   showSection(section) {
@@ -1865,7 +1899,24 @@ function showSection(section) {
 
 // Global function for dark mode toggle
 function toggleDarkMode() {
-  app.toggleDarkMode();
+  // Prevenir el comportamiento por defecto
+  event?.preventDefault();
+  event?.stopPropagation();
+
+  // Agregar feedback visual inmediato
+  const button = document.getElementById("darkModeToggle");
+  if (button) {
+    button.style.transform = "scale(0.9)";
+    setTimeout(() => {
+      button.style.transform = "";
+    }, 150);
+  }
+
+  if (app && typeof app.toggleDarkMode === "function") {
+    app.toggleDarkMode();
+  } else {
+    console.error("App not available or toggleDarkMode is not a function");
+  }
 }
 
 // Global function for canceling plane stock management
