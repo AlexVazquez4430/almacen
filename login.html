@@ -1,243 +1,257 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="Login - Sistema de gestión de almacén">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta name="description" content="Login - Sistema de gestión de almacén" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Meta tags para evitar cache -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Login - Sistema de Almacén</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/style.css" />
     <style>
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+      }
+
+      .login-box {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .login-header h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+      }
+
+      .login-header p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e5e9;
+        border-radius: 6px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        min-height: 48px; /* Touch-friendly */
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        min-height: 48px; /* Touch-friendly */
+      }
+
+      .login-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .login-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+        border: 1px solid #f5c6cb;
+      }
+
+      .default-credentials {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 15px;
+        border-radius: 6px;
+        margin-top: 20px;
+        font-size: 14px;
+        text-align: center;
+        border: 1px solid #bee5eb;
+      }
+
+      .default-credentials strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      /* Mobile optimizations */
+      @media (max-width: 480px) {
         .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+          padding: 15px;
         }
 
         .login-box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
+          padding: 20px;
         }
 
         .login-header h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.8rem;
+          font-size: 1.5rem;
         }
-
-        .login-header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            min-height: 48px; /* Touch-friendly */
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            min-height: 48px; /* Touch-friendly */
-        }
-
-        .login-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-            border: 1px solid #f5c6cb;
-        }
-
-        .default-credentials {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 20px;
-            font-size: 14px;
-            text-align: center;
-            border: 1px solid #bee5eb;
-        }
-
-        .default-credentials strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 15px;
-            }
-
-            .login-box {
-                padding: 20px;
-            }
-
-            .login-header h1 {
-                font-size: 1.5rem;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <h1>Sistema de Almacén</h1>
-                <p>Ingrese sus credenciales para acceder</p>
-            </div>
-            
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="username">Usuario:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <button type="submit" id="loginBtn" class="login-btn">Iniciar Sesión</button>
-                
-                <div id="errorMessage" class="error-message"></div>
-            </form>
-            
+      <div class="login-box">
+        <div class="login-header">
+          <h1>Sistema de Almacén</h1>
+          <p>Ingrese sus credenciales para acceder</p>
         </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+
+          <button type="submit" id="loginBtn" class="login-btn">
+            Iniciar Sesión
+          </button>
+
+          <div id="errorMessage" class="error-message"></div>
+        </form>
+      </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Disable button and show loading state
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Iniciando sesión...';
-            errorMessage.style.display = 'none';
-            
-            try {
-                const response = await fetch('api/auth.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'login',
-                        username: username,
-                        password: password
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Redirect to main application
-                    window.location.href = 'index.html';
-                } else {
-                    // Show error message
-                    errorMessage.textContent = result.error || 'Error de inicio de sesión';
-                    errorMessage.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.textContent = 'Error de conexión. Intente nuevamente.';
-                errorMessage.style.display = 'block';
-            } finally {
-                // Re-enable button
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Iniciar Sesión';
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const loginBtn = document.getElementById("loginBtn");
+          const errorMessage = document.getElementById("errorMessage");
+
+          // Disable button and show loading state
+          loginBtn.disabled = true;
+          loginBtn.textContent = "Iniciando sesión...";
+          errorMessage.style.display = "none";
+
+          try {
+            const response = await fetch("api/auth.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                action: "login",
+                username: username,
+                password: password,
+              }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              // Redirect to main application
+              window.location.href = "index.html";
+            } else {
+              // Show error message
+              errorMessage.textContent =
+                result.error || "Error de inicio de sesión";
+              errorMessage.style.display = "block";
             }
+          } catch (error) {
+            console.error("Login error:", error);
+            errorMessage.textContent = "Error de conexión. Intente nuevamente.";
+            errorMessage.style.display = "block";
+          } finally {
+            // Re-enable button
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Iniciar Sesión";
+          }
         });
-        
-        // Check if already logged in
-        window.addEventListener('load', async () => {
-            try {
-                const response = await fetch('api/auth.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'check'
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.logged_in) {
-                    // Already logged in, redirect to main app
-                    window.location.href = 'index.html';
-                }
-            } catch (error) {
-                console.error('Session check error:', error);
-            }
-        });
+
+      // Check if already logged in
+      window.addEventListener("load", async () => {
+        try {
+          const response = await fetch("api/auth.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "check",
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.logged_in) {
+            // Already logged in, redirect to main app
+            window.location.href = "index.html";
+          }
+        } catch (error) {
+          console.error("Session check error:", error);
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

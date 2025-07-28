@@ -1,83 +1,113 @@
-const CACHE_NAME = "almacen-v1.0.0";
+// Versión dinámica basada en timestamp para forzar actualizaciones
+const CACHE_VERSION = Date.now().toString();
+const CACHE_NAME = `almacen-v${CACHE_VERSION}`;
+
+// URLs que NO deben cachearse (siempre buscar en red)
+const NO_CACHE_URLS = ["/api/", "/js/app.js", "/css/style.css"];
+
+// URLs que pueden cachearse
 const urlsToCache = [
   "/",
   "/index.html",
   "/login.html",
-  "/css/style.css",
-  "/js/app.js",
   "/manifest.json",
   "/favicon.ico",
 ];
 
 // Install event - cache resources
 self.addEventListener("install", (event) => {
+  console.log("🔄 Service Worker instalando nueva versión:", CACHE_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache");
+      console.log("📦 Cache abierto:", CACHE_NAME);
       return cache.addAll(urlsToCache);
     })
   );
+  // Forzar activación inmediata
+  self.skipWaiting();
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - estrategia Network First para archivos críticos
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests for caching
+  const url = new URL(event.request.url);
+
+  // Solo manejar peticiones GET
   if (event.request.method !== "GET") {
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached version or fetch from network
-      if (response) {
-        return response;
-      }
 
-      // Clone the request because it's a stream
-      const fetchRequest = event.request.clone();
-
-      return fetch(fetchRequest)
+  // Para archivos de API y recursos críticos, usar Network First
+  if (NO_CACHE_URLS.some((noCacheUrl) => url.pathname.includes(noCacheUrl))) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          // Check if we received a valid response
-          if (
-            !response ||
-            response.status !== 200 ||
-            response.type !== "basic"
-          ) {
+          // Si la red funciona, devolver la respuesta
+          if (response && response.status === 200) {
             return response;
           }
-
-          // Clone the response because it's a stream
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-
-          return response;
+          // Si falla la red, intentar cache
+          return caches.match(event.request);
         })
         .catch(() => {
-          // If both cache and network fail, show offline page
-          if (event.request.destination === "document") {
-            return caches.match("/index.html");
+          // Si todo falla, devolver cache si existe
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Para otros archivos, usar Cache First con validación de red
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      // Siempre intentar obtener la versión más reciente
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          // Si obtenemos una respuesta válida de la red
+          if (networkResponse && networkResponse.status === 200) {
+            // Actualizar cache en segundo plano
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse.clone());
+            });
+            return networkResponse;
           }
+          return cachedResponse;
+        })
+        .catch(() => {
+          // Si falla la red, usar cache
+          return cachedResponse;
         });
+
+      // Si tenemos cache, devolverlo inmediatamente y actualizar en segundo plano
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // Si no hay cache, esperar la respuesta de la red
+      return fetchPromise;
     })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - limpiar caches antiguos inmediatamente
 self.addEventListener("activate", (event) => {
+  console.log("🚀 Service Worker activando nueva versión:", CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log("Deleting old cache:", cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log("🗑️ Eliminando cache antiguo:", cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        // Tomar control inmediatamente de todas las páginas
+        return self.clients.claim();
+      })
   );
 });
 
@@ -132,5 +162,22 @@ self.addEventListener("notificationclick", (event) => {
 
   if (event.action === "explore") {
     event.waitUntil(clients.openWindow("/"));
+  }
+});
+
+// Listen for messages from the main thread
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "CLEAR_CACHE") {
+    console.log("🔄 Service Worker recibió mensaje para limpiar cache");
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log("🗑️ Eliminando cache:", cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      })
+    );
   }
 });

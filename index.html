@@ -15,6 +15,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Almacén" />
+    <!-- Meta tags para evitar cache -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Sistema de almacén</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="manifest" href="manifest.json" />
@@ -57,8 +64,21 @@
       <!-- Warehouse Section -->
       <section id="warehouse" class="section active">
         <h2>Almacén/Cedis</h2>
-        <div id="lowStockAlert" style="display: none; margin-bottom: 20px; padding: 15px; background-color: #ffebee; border: 1px solid #f44336; border-radius: 8px; color: #c62828;">
-          <strong>⚠️ Alerta de Stock Bajo:</strong> <span id="lowStockCount">0</span> productos tienen stock por debajo del mínimo requerido.
+        <div
+          id="lowStockAlert"
+          style="
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            color: #c62828;
+          "
+        >
+          <strong>⚠️ Alerta de Stock Bajo:</strong>
+          <span id="lowStockCount">0</span> productos tienen stock por debajo
+          del mínimo requerido.
         </div>
 
         <div class="form-container">

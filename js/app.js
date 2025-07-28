@@ -8,6 +8,57 @@ class WarehouseApp {
     this.init();
   }
 
+  // Función helper para hacer peticiones sin cache
+  async fetchWithoutCache(url, options = {}) {
+    const defaultHeaders = {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+
+    const finalOptions = {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+      },
+    };
+
+    // Agregar timestamp para evitar cache
+    const separator = url.includes("?") ? "&" : "?";
+    const urlWithTimestamp = `${url}${separator}_t=${Date.now()}`;
+
+    return fetch(urlWithTimestamp, finalOptions);
+  }
+
+  // Función helper para limpiar cache y forzar actualización
+  async clearCacheAndReload() {
+    // Limpiar cache del service worker
+    if ("caches" in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+        console.log("🗑️ Cache limpiado exitosamente");
+      } catch (error) {
+        console.error("Error limpiando cache:", error);
+      }
+    }
+
+    // Forzar actualización del service worker
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      try {
+        await navigator.serviceWorker.controller.postMessage({
+          type: "CLEAR_CACHE",
+        });
+        console.log("🔄 Service Worker notificado para limpiar cache");
+      } catch (error) {
+        console.error("Error notificando service worker:", error);
+      }
+    }
+  }
+
   async init() {
     // Check authentication first
     const isAuthenticated = await this.checkAuthentication();
@@ -123,7 +174,7 @@ class WarehouseApp {
 
   async checkAuthentication() {
     try {
-      const response = await fetch("api/auth.php", {
+      const response = await this.fetchWithoutCache("api/auth.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -238,7 +289,7 @@ class WarehouseApp {
       if (id) {
         // Update existing product
         data.id = id;
-        response = await fetch("api/products.php", {
+        response = await this.fetchWithoutCache("api/products.php", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -246,7 +297,7 @@ class WarehouseApp {
       } else {
         // Create new product
         data.stock = stock; // For new products, use 'stock' instead of 'total_stock'
-        response = await fetch("api/products.php", {
+        response = await this.fetchWithoutCache("api/products.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -255,7 +306,10 @@ class WarehouseApp {
 
       if (response.ok) {
         this.cancelProductEdit();
-        this.loadProducts();
+        // Forzar recarga inmediata de datos
+        await this.loadProducts();
+        // Limpiar cache y forzar actualización
+        await this.clearCacheAndReload();
       }
     } catch (error) {
       console.error("Error saving product:", error);
@@ -264,7 +318,7 @@ class WarehouseApp {
 
   async loadProducts() {
     try {
-      const response = await fetch("api/products.php");
+      const response = await this.fetchWithoutCache("api/products.php");
       const products = await response.json();
 
       const tbody = document.querySelector("#productsTable tbody");
@@ -277,9 +331,10 @@ class WarehouseApp {
         const row = tbody.insertRow();
 
         // Check if stock is below minimum
-        const isLowStock = parseInt(product.total_stock) < parseInt(product.minimun_stock);
+        const isLowStock =
+          parseInt(product.total_stock) < parseInt(product.minimun_stock);
         if (isLowStock) {
-          row.classList.add('low-stock');
+          row.classList.add("low-stock");
           lowStockCount++;
         }
 
@@ -289,7 +344,11 @@ class WarehouseApp {
                     <td>$${parseFloat(product.price).toFixed(2)}</td>
                     <td>
                         ${product.total_stock}
-                        ${isLowStock ? '<span style="margin-left: 8px; font-size: 1.2em;" title="Stock bajo">⚠️</span>' : ''}
+                        ${
+                          isLowStock
+                            ? '<span style="margin-left: 8px; font-size: 1.2em;" title="Stock bajo">⚠️</span>'
+                            : ""
+                        }
                     </td>
                     <td>${product.minimun_stock}</td>
                     <td>
@@ -307,23 +366,22 @@ class WarehouseApp {
       });
 
       // Update low stock alert
-      const lowStockAlert = document.getElementById('lowStockAlert');
-      const lowStockCountElement = document.getElementById('lowStockCount');
+      const lowStockAlert = document.getElementById("lowStockAlert");
+      const lowStockCountElement = document.getElementById("lowStockCount");
 
       if (lowStockCount > 0) {
-        lowStockAlert.style.display = 'block';
+        lowStockAlert.style.display = "block";
         lowStockCountElement.textContent = lowStockCount;
       } else {
-        lowStockAlert.style.display = 'none';
+        lowStockAlert.style.display = "none";
       }
-
     } catch (error) {
       console.error("Error loading products:", error);
     }
   }
 
   editProduct(id) {
-    fetch("api/products.php")
+    this.fetchWithoutCache("api/products.php")
       .then((response) => response.json())
       .then((products) => {
         const product = products.find((p) => p.id == id);
@@ -361,7 +419,7 @@ class WarehouseApp {
   async deleteProduct(id) {
     if (confirm("¿Está seguro de que desea eliminar este producto?")) {
       try {
-        const response = await fetch("api/products.php", {
+        const response = await this.fetchWithoutCache("api/products.php", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id }),
@@ -380,7 +438,7 @@ class WarehouseApp {
     const newStock = prompt("Enter new stock quantity:");
     if (newStock !== null && !isNaN(newStock)) {
       try {
-        const response = await fetch("api/products.php", {
+        const response = await this.fetchWithoutCache("api/products.php", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: productId, stock: parseInt(newStock) }),
@@ -408,14 +466,14 @@ class WarehouseApp {
       if (id) {
         // Update existing plane
         data.id = id;
-        response = await fetch("api/planes.php", {
+        response = await this.fetchWithoutCache("api/planes.php", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
       } else {
         // Create new plane
-        response = await fetch("api/planes.php", {
+        response = await this.fetchWithoutCache("api/planes.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
@@ -433,7 +491,7 @@ class WarehouseApp {
 
   async loadPlanes() {
     try {
-      const response = await fetch("api/planes.php");
+      const response = await this.fetchWithoutCache("api/planes.php");
       const planes = await response.json();
 
       const tbody = document.querySelector("#planesTable tbody");
@@ -463,7 +521,7 @@ class WarehouseApp {
   }
 
   editPlane(id) {
-    fetch("api/planes.php")
+    this.fetchWithoutCache("api/planes.php")
       .then((response) => response.json())
       .then((planes) => {
         const plane = planes.find((p) => p.id == id);
@@ -497,7 +555,7 @@ class WarehouseApp {
   async deletePlane(id) {
     if (confirm("¿Está seguro de que desea eliminar este avión?")) {
       try {
-        const response = await fetch("api/planes.php", {
+        const response = await this.fetchWithoutCache("api/planes.php", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id }),
@@ -516,7 +574,7 @@ class WarehouseApp {
   // Load planes for ticket form
   async loadPlanesForTickets() {
     try {
-      const response = await fetch("api/planes.php");
+      const response = await this.fetchWithoutCache("api/planes.php");
       const planes = await response.json();
 
       const select = document.getElementById("ticketPlane");
@@ -560,7 +618,7 @@ class WarehouseApp {
       }
 
       console.log("📡 Fetching tickets from:", url);
-      const response = await fetch(url);
+      const response = await this.fetchWithoutCache(url);
 
       if (!response.ok) {
         console.error("❌ API Error:", response.status, response.statusText);
@@ -673,7 +731,7 @@ class WarehouseApp {
         requestBody.id = parseInt(ticketId);
       }
 
-      const response = await fetch("api/tickets.php", {
+      const response = await this.fetchWithoutCache("api/tickets.php", {
         method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -733,7 +791,7 @@ class WarehouseApp {
     try {
       // Fetch the specific ticket with its pilots and doctors
       console.log("📡 Fetching ticket data...");
-      const response = await fetch(`api/tickets.php?id=${id}`);
+      const response = await this.fetchWithoutCache(`api/tickets.php?id=${id}`);
       console.log("📡 Response status:", response.status);
       const ticketData = await response.json();
       console.log("📡 Ticket data received:", ticketData);
@@ -955,7 +1013,7 @@ class WarehouseApp {
   // DOCTORS CRUD METHODS
   async loadDoctors() {
     try {
-      const response = await fetch("api/doctors.php");
+      const response = await this.fetchWithoutCache("api/doctors.php");
       const doctors = await response.json();
 
       const tbody = document.querySelector("#doctorsTable tbody");
@@ -986,7 +1044,7 @@ class WarehouseApp {
     }
 
     try {
-      const response = await fetch("api/doctors.php", {
+      const response = await this.fetchWithoutCache("api/doctors.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: id || null, name: name }),
@@ -1009,7 +1067,7 @@ class WarehouseApp {
   }
 
   editDoctor(id) {
-    fetch("api/doctors.php")
+    this.fetchWithoutCache("api/doctors.php")
       .then((response) => response.json())
       .then((doctors) => {
         const doctor = doctors.find((d) => d.id == id);
@@ -1041,7 +1099,7 @@ class WarehouseApp {
   async deleteDoctor(id) {
     if (confirm("¿Está seguro de que desea eliminar este médico?")) {
       try {
-        const response = await fetch("api/doctors.php", {
+        const response = await this.fetchWithoutCache("api/doctors.php", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: id }),
@@ -1064,7 +1122,7 @@ class WarehouseApp {
   // Load doctors for ticket form
   async loadDoctorsForTickets() {
     try {
-      const response = await fetch("api/doctors.php");
+      const response = await this.fetchWithoutCache("api/doctors.php");
       const doctors = await response.json();
 
       const container = document.getElementById("ticketDoctors");
@@ -1194,10 +1252,10 @@ class WarehouseApp {
   }
   async managePlaneStock(planeId) {
     try {
-      const response = await fetch("api/products.php");
+      const response = await this.fetchWithoutCache("api/products.php");
       const products = await response.json();
 
-      const stockResponse = await fetch(
+      const stockResponse = await this.fetchWithoutCache(
         `api/plane-stock.php?plane_id=${planeId}`
       );
       const stockData = await stockResponse.json();
@@ -1239,7 +1297,7 @@ class WarehouseApp {
     const minimum = prompt("Set minimum stock level:");
     if (minimum !== null && !isNaN(minimum)) {
       try {
-        const response = await fetch("api/plane-stock.php", {
+        const response = await this.fetchWithoutCache("api/plane-stock.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1263,14 +1321,16 @@ class WarehouseApp {
     if (quantity !== null && !isNaN(quantity)) {
       try {
         //Ingresar la logica para mandar una alerta
-        const validacion = await fetch(`api/products.php?id=${productId}`);
+        const validacion = await this.fetchWithoutCache(
+          `api/products.php?id=${productId}`
+        );
         const data = await validacion.json();
         if (quantity > data.stock) {
           alert(
             "No hay suficiente stock en el almacén para transferir esta cantidad."
           );
         } else {
-          const response = await fetch("api/transfer.php", {
+          const response = await this.fetchWithoutCache("api/transfer.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1296,7 +1356,7 @@ class WarehouseApp {
     try {
       console.log("Loading ticket items for ticket ID:", ticketId);
 
-      const response = await fetch(
+      const response = await this.fetchWithoutCache(
         `api/ticket-details.php?ticket_id=${ticketId}`
       );
       const ticketDetails = await response.json();
@@ -1308,7 +1368,7 @@ class WarehouseApp {
         return;
       }
 
-      const itemsResponse = await fetch(
+      const itemsResponse = await this.fetchWithoutCache(
         `api/ticket-items.php?ticket_id=${ticketId}`
       );
       const ticketItems = await itemsResponse.json();
@@ -1451,7 +1511,7 @@ class WarehouseApp {
     }
 
     try {
-      const response = await fetch("api/ticket-items.php", {
+      const response = await this.fetchWithoutCache("api/ticket-items.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1481,7 +1541,7 @@ class WarehouseApp {
   async removeTicketItem(itemId, ticketId) {
     if (confirm("Remove this item from the ticket?")) {
       try {
-        const response = await fetch("api/ticket-items.php", {
+        const response = await this.fetchWithoutCache("api/ticket-items.php", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: itemId }),
@@ -1515,6 +1575,9 @@ async function logout() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
         body: JSON.stringify({
           action: "logout",
@@ -1546,6 +1609,11 @@ if ("serviceWorker" in navigator) {
       .then((registration) => {
         console.log("SW registered: ", registration);
 
+        // Check for updates every 30 seconds
+        setInterval(() => {
+          registration.update();
+        }, 30000);
+
         // Check for updates
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
@@ -1560,6 +1628,15 @@ if ("serviceWorker" in navigator) {
               }
             }
           });
+        });
+
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data && event.data.type === "UPDATE_AVAILABLE") {
+            if (confirm("Nueva versión disponible. ¿Desea actualizar?")) {
+              window.location.reload();
+            }
+          }
         });
       })
       .catch((registrationError) => {
