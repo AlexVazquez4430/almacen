@@ -906,3 +906,104 @@ tr:hover {
   border: 1px solid var(--border-color);
   color: var(--success-color);
 }
+
+/* Estilos para gestión de stock de aviones */
+.plane-stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.plane-stock-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+}
+
+.plane-low-stock-alert {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 8px;
+  color: #c62828;
+  animation: pulse 2s infinite;
+}
+
+.plane-low-stock-row {
+  background-color: #fff3cd !important;
+  animation: pulse 2s infinite;
+}
+
+.plane-low-stock-row td {
+  color: #856404 !important;
+  font-weight: 600;
+}
+
+.plane-low-stock-row:hover {
+  background-color: #ffeaa7 !important;
+}
+
+.low-stock-details {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Estilos para modo oscuro en gestión de stock de aviones */
+[data-theme="dark"] .plane-low-stock-alert {
+  background-color: #4a2c2c;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+[data-theme="dark"] .plane-low-stock-row {
+  background-color: #4a3c1c !important;
+}
+
+[data-theme="dark"] .plane-low-stock-row td {
+  color: #ffd43b !important;
+}
+
+[data-theme="dark"] .plane-low-stock-row:hover {
+  background-color: #5a4c2c !important;
+}
+
+[data-theme="dark"] .plane-stock-header {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .plane-stock-header h4 {
+  color: var(--text-primary);
+}
+
+/* Estilos para alerta general de aviones */
+.planes-low-stock-alert {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 8px;
+  color: #c62828;
+  animation: pulse 2s infinite;
+}
+
+.planes-low-stock-alert small {
+  color: #c62828;
+  opacity: 0.8;
+}
+
+/* Estilos para modo oscuro en alerta general de aviones */
+[data-theme="dark"] .planes-low-stock-alert {
+  background-color: #4a2c2c;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+[data-theme="dark"] .planes-low-stock-alert small {
+  color: #ff6b6b;
+  opacity: 0.8;
+}

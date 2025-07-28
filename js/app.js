@@ -252,7 +252,10 @@ class WarehouseApp {
 
       if (result.logged_in) {
         // Update user info in header
-        document.getElementById("currentUser").textContent = result.username;
+        const currentUserElement = document.getElementById("currentUser");
+        if (currentUserElement) {
+          currentUserElement.textContent = result.username;
+        }
         return true;
       } else {
         return false;
@@ -296,31 +299,54 @@ class WarehouseApp {
       .forEach((b) => b.classList.remove("active"));
 
     // Show selected section
-    document.getElementById(section).classList.add("active");
-    event.target.classList.add("active");
+    const sectionElement = document.getElementById(section);
+    if (!sectionElement) {
+      console.error(`Section not found: ${section}`);
+      return;
+    }
+
+    sectionElement.classList.add("active");
+    if (event && event.target) {
+      event.target.classList.add("active");
+    }
 
     this.currentSection = section;
     this.loadData();
   }
 
   async loadData() {
-    switch (this.currentSection) {
-      case "warehouse":
-        await this.loadProducts();
-        break;
-      case "planes":
-        await this.loadPlanes();
-        break;
-      case "tickets":
-        await this.loadTickets();
-        await this.loadPlanesForTickets();
-        await this.loadDoctorsForTickets();
-        // Set today's date as default for new tickets
-        this.setDefaultTicketDate();
-        break;
-      case "doctors":
-        await this.loadDoctors();
-        break;
+    try {
+      switch (this.currentSection) {
+        case "warehouse":
+          await this.loadProducts();
+          break;
+        case "planes":
+          await this.loadPlanes();
+          break;
+        case "tickets":
+          await this.loadTickets();
+          await this.loadPlanesForTickets();
+          await this.loadDoctorsForTickets();
+          // Set today's date as default for new tickets
+          this.setDefaultTicketDate();
+          break;
+        case "doctors":
+          await this.loadDoctors();
+          break;
+      }
+    } catch (error) {
+      console.error(
+        `Error loading data for section ${this.currentSection}:`,
+        error
+      );
+    }
+  }
+
+  // Función para actualizar alertas de stock bajo en aviones
+  async updatePlaneStockAlerts() {
+    // Si estamos en la sección de aviones, recargar para actualizar alertas
+    if (this.currentSection === "planes") {
+      await this.loadPlanes();
     }
   }
 
@@ -556,15 +582,59 @@ class WarehouseApp {
   async loadPlanes() {
     try {
       const response = await this.fetchWithoutCache("api/planes.php");
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
       const planes = await response.json();
 
+      // Obtener datos de stock para verificar alertas
+      const stockResponse = await this.fetchWithoutCache("api/plane-stock.php");
+
+      let stockData = [];
+      if (stockResponse.ok) {
+        stockData = await stockResponse.json();
+      }
+
       const tbody = document.querySelector("#planesTable tbody");
+      if (!tbody) {
+        throw new Error("Planes table not found");
+      }
+
       tbody.innerHTML = "";
 
+      // Contar alertas totales de stock bajo
+      let totalLowStockAlerts = 0;
+
       planes.forEach((plane) => {
+        // Verificar si este avión tiene productos con stock bajo
+        const planeStock = stockData.filter((s) => s.plane_id == plane.id);
+        let planeLowStockCount = 0;
+
+        planeStock.forEach((stock) => {
+          if (
+            stock.minimum_quantity > 0 &&
+            stock.current_stock < stock.minimum_quantity
+          ) {
+            planeLowStockCount++;
+          }
+        });
+
+        if (planeLowStockCount > 0) {
+          totalLowStockAlerts++;
+        }
+
         const row = tbody.insertRow();
         row.innerHTML = `
-                    <td>${plane.name}</td>
+                    <td>
+                        ${plane.name}
+                        ${
+                          planeLowStockCount > 0
+                            ? `<span style="margin-left: 8px; font-size: 1.2em;" title="Stock bajo en ${planeLowStockCount} productos">⚠️</span>`
+                            : ""
+                        }
+                    </td>
                     <td>${plane.description || ""}</td>
                     <td>
                         <button class="btn-small btn-primary" onclick="app.editPlane(${
@@ -579,6 +649,39 @@ class WarehouseApp {
                     </td>
                 `;
       });
+
+      // Mostrar alerta general si hay aviones con stock bajo
+      const planesSection = document.getElementById("planes");
+      if (!planesSection) {
+        throw new Error("Planes section not found");
+      }
+
+      let existingAlert = planesSection.querySelector(
+        ".planes-low-stock-alert"
+      );
+
+      if (totalLowStockAlerts > 0) {
+        if (!existingAlert) {
+          const alertDiv = document.createElement("div");
+          alertDiv.className = "planes-low-stock-alert";
+          alertDiv.style.cssText =
+            "margin-bottom: 20px; padding: 15px; background-color: #ffebee; border: 1px solid #f44336; border-radius: 8px; color: #c62828;";
+          alertDiv.innerHTML = `
+            <strong>⚠️ Alerta de Stock Bajo en Aviones:</strong> 
+            <span id="planesLowStockCount">${totalLowStockAlerts}</span> aviones tienen productos con stock por debajo del mínimo requerido.
+            <br><small>Haz clic en "Manage Stock" de cada avión para ver los detalles.</small>
+          `;
+
+          // Insertar al inicio de la sección de aviones
+          const firstChild = planesSection.firstChild;
+          planesSection.insertBefore(alertDiv, firstChild);
+        } else {
+          existingAlert.querySelector("#planesLowStockCount").textContent =
+            totalLowStockAlerts;
+        }
+      } else if (existingAlert) {
+        existingAlert.remove();
+      }
     } catch (error) {
       console.error("Error loading planes:", error);
     }
@@ -1324,41 +1427,138 @@ class WarehouseApp {
       );
       const stockData = await stockResponse.json();
 
+      // Obtener información del avión
+      const planeResponse = await this.fetchWithoutCache("api/planes.php");
+      const planes = await planeResponse.json();
+      const plane = planes.find((p) => p.id == planeId);
+
       const planeDetails = document.getElementById("planeDetails");
       const container = document.getElementById("planeStockContainer");
 
-      container.innerHTML = "<h4>Product Stock Management</h4>";
+      // Contar productos con stock bajo
+      let lowStockCount = 0;
+      let lowStockProducts = [];
 
       products.forEach((product) => {
         const stock = stockData.find((s) => s.product_id == product.id);
         const currentStock = stock ? stock.current_stock : 0;
         const minimumStock = stock ? stock.minimum_quantity : 0;
 
-        const productDiv = document.createElement("div");
-        productDiv.className = "stock-item";
-        productDiv.innerHTML = `
-                    <div class="stock-info">
-                        <strong>${product.name}</strong><br>
-                        Current Stock: ${currentStock}<br>
-                        Minimum: ${minimumStock}<br>
-                        Warehouse Stock: ${product.total_stock}
-                    </div>
-                    <div class="stock-actions">
-                        <button onclick="app.setMinimum(${planeId}, ${product.id})">Set Minimum</button>
-                        <button onclick="app.transferToPlane(${planeId}, ${product.id})">Transfer</button>
-                    </div>
-                `;
-        container.appendChild(productDiv);
+        if (minimumStock > 0 && currentStock < minimumStock) {
+          lowStockCount++;
+          lowStockProducts.push({
+            name: product.name,
+            current: currentStock,
+            minimum: minimumStock,
+            needed: minimumStock - currentStock,
+          });
+        }
       });
 
+      // Crear el contenido HTML
+      let html = `
+        <div class="plane-stock-header">
+          <h4>Gestión de Stock - ${plane ? plane.name : "Avión"}</h4>
+          <button class="btn-secondary" onclick="app.cancelPlaneStockManagement()">
+            ✕ Cerrar Gestión
+          </button>
+        </div>
+      `;
+
+      // Mostrar alerta de stock bajo si hay productos afectados
+      if (lowStockCount > 0) {
+        html += `
+          <div class="plane-low-stock-alert" style="margin-bottom: 20px; padding: 15px; background-color: #ffebee; border: 1px solid #f44336; border-radius: 8px; color: #c62828;">
+            <strong>⚠️ Alerta de Stock Bajo en ${
+              plane ? plane.name : "Avión"
+            }:</strong><br>
+            <span id="planeLowStockCount">${lowStockCount}</span> productos tienen stock por debajo del mínimo requerido.
+            <div class="low-stock-details" style="margin-top: 10px; font-size: 14px;">
+              <strong>Productos afectados:</strong><br>
+        `;
+
+        lowStockProducts.forEach((product) => {
+          html += `
+            • ${product.name}: ${product.current}/${product.minimum} (Faltan: ${product.needed})
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      }
+
+      // Agregar la tabla de productos
+      html += `
+        <div class="plane-stock-table">
+          <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Stock Actual</th>
+                <th>Stock Mínimo</th>
+                <th>Stock Almacén</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      products.forEach((product) => {
+        const stock = stockData.find((s) => s.product_id == product.id);
+        const currentStock = stock ? stock.current_stock : 0;
+        const minimumStock = stock ? stock.minimum_quantity : 0;
+        const isLowStock = minimumStock > 0 && currentStock < minimumStock;
+
+        html += `
+          <tr class="${isLowStock ? "plane-low-stock-row" : ""}">
+            <td><strong>${product.name}</strong></td>
+            <td>${currentStock}</td>
+            <td>${minimumStock}</td>
+            <td>${product.total_stock}</td>
+            <td>
+              ${
+                isLowStock
+                  ? '<span style="color: #f44336; font-weight: bold;">⚠️ Stock Bajo</span>'
+                  : '<span style="color: #4caf50; font-weight: bold;">✓ OK</span>'
+              }
+            </td>
+            <td>
+              <button class="btn-small btn-primary" onclick="app.setMinimum(${planeId}, ${
+          product.id
+        })">
+                Establecer Mínimo
+              </button>
+              <button class="btn-small btn-info" onclick="app.transferToPlane(${planeId}, ${
+          product.id
+        })">
+                Transferir
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = html;
       planeDetails.style.display = "block";
+
+      // Guardar el planeId actual para referencia
+      this.currentPlaneStockId = planeId;
     } catch (error) {
       console.error("Error managing plane stock:", error);
     }
   }
 
   async setMinimum(planeId, productId) {
-    const minimum = prompt("Set minimum stock level:");
+    const minimum = prompt("Establecer nivel mínimo de stock:");
     if (minimum !== null && !isNaN(minimum)) {
       try {
         const response = await this.fetchWithoutCache("api/plane-stock.php", {
@@ -1372,10 +1572,17 @@ class WarehouseApp {
         });
 
         if (response.ok) {
+          // Recargar la gestión de stock para mostrar las alertas actualizadas
           this.managePlaneStock(planeId);
+          // Actualizar alertas en la sección de aviones
+          await this.updatePlaneStockAlerts();
+          console.log("✅ Stock mínimo actualizado");
+        } else {
+          alert("Error al establecer el stock mínimo");
         }
       } catch (error) {
         console.error("Error setting minimum:", error);
+        alert("Error al establecer el stock mínimo: " + error.message);
       }
     }
   }
@@ -1405,8 +1612,14 @@ class WarehouseApp {
           });
 
           if (response.ok) {
+            // Recargar la gestión de stock para mostrar las alertas actualizadas
             this.managePlaneStock(planeId);
             this.loadProducts();
+            // Actualizar alertas en la sección de aviones
+            await this.updatePlaneStockAlerts();
+            console.log("✅ Transferencia completada");
+          } else {
+            alert("Error al realizar la transferencia");
           }
         }
         // fin la de la lógica para mandar una alerta
@@ -1414,6 +1627,21 @@ class WarehouseApp {
         console.error("Error transferring to plane:", error);
       }
     }
+  }
+
+  // Función para cancelar la gestión de stock del avión
+  cancelPlaneStockManagement() {
+    const planeDetails = document.getElementById("planeDetails");
+    const container = document.getElementById("planeStockContainer");
+
+    // Limpiar el contenido
+    container.innerHTML = "";
+    planeDetails.style.display = "none";
+
+    // Limpiar la referencia del avión actual
+    this.currentPlaneStockId = null;
+
+    console.log("🗑️ Gestión de stock del avión cancelada");
   }
 
   async manageTicketItems(ticketId) {
@@ -1628,12 +1856,21 @@ class WarehouseApp {
 
 // Global function for navigation
 function showSection(section) {
-  app.showSection(section);
+  if (app && typeof app.showSection === "function") {
+    app.showSection(section);
+  } else {
+    console.error("App not available or showSection is not a function");
+  }
 }
 
 // Global function for dark mode toggle
 function toggleDarkMode() {
   app.toggleDarkMode();
+}
+
+// Global function for canceling plane stock management
+function cancelPlaneStockManagement() {
+  app.cancelPlaneStockManagement();
 }
 
 // Global logout function
@@ -1772,8 +2009,3 @@ window.addEventListener("appinstalled", (evt) => {
     installBtn.remove();
   }
 });
-
-// Global functions for HTML onclick handlers
-function showSection(section) {
-  app.showSection(section);
-}
