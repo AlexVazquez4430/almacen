@@ -21,22 +21,60 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="css/style.css" />
     <style>
+      /* Variables CSS para modo oscuro en login */
+      :root {
+        --login-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --login-box-bg: white;
+        --login-text: #333;
+        --login-input-bg: white;
+        --login-input-border: #e1e5e9;
+        --login-input-focus: #667eea;
+        --login-btn-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --login-btn-hover: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        --login-error-bg: #f8d7da;
+        --login-error-text: #721c24;
+        --login-error-border: #f5c6cb;
+        --login-info-bg: #d1ecf1;
+        --login-info-text: #0c5460;
+        --login-info-border: #bee5eb;
+      }
+
+      [data-theme="dark"] {
+        --login-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        --login-box-bg: #2d2d2d;
+        --login-text: #ffffff;
+        --login-input-bg: #3d3d3d;
+        --login-input-border: #4d4d4d;
+        --login-input-focus: #4a9eff;
+        --login-btn-bg: linear-gradient(135deg, #4a9eff 0%, #3a8eef 100%);
+        --login-btn-hover: linear-gradient(135deg, #3a8eef 0%, #2a7edf 100%);
+        --login-error-bg: #4a2c2c;
+        --login-error-text: #ff6b6b;
+        --login-error-border: #5a3c3c;
+        --login-info-bg: #2c4a4a;
+        --login-info-text: #74c0fc;
+        --login-info-border: #3c5a5a;
+      }
+
       .login-container {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--login-bg);
         padding: 20px;
+        transition: background 0.3s ease;
       }
 
       .login-box {
-        background: white;
+        background: var(--login-box-bg);
+        color: var(--login-text);
         padding: 30px;
         border-radius: 12px;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         width: 100%;
         max-width: 400px;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
 
       .login-header {
@@ -69,36 +107,39 @@
       .form-group input {
         width: 100%;
         padding: 12px;
-        border: 2px solid #e1e5e9;
+        background: var(--login-input-bg);
+        color: var(--login-text);
+        border: 2px solid var(--login-input-border);
         border-radius: 6px;
         font-size: 16px;
-        transition: border-color 0.3s;
+        transition: all 0.3s ease;
         min-height: 48px; /* Touch-friendly */
       }
 
       .form-group input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: var(--login-input-focus);
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
       }
 
       .login-btn {
         width: 100%;
         padding: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--login-btn-bg);
         color: white;
         border: none;
         border-radius: 6px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: all 0.3s ease;
         min-height: 48px; /* Touch-friendly */
       }
 
       .login-btn:hover {
+        background: var(--login-btn-hover);
         transform: translateY(-1px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 5px 15px rgba(74, 158, 255, 0.3);
       }
 
       .login-btn:disabled {
@@ -108,25 +149,27 @@
       }
 
       .error-message {
-        background: #f8d7da;
-        color: #721c24;
+        background: var(--login-error-bg);
+        color: var(--login-error-text);
         padding: 12px;
         border-radius: 6px;
         margin-bottom: 20px;
         text-align: center;
         display: none;
-        border: 1px solid #f5c6cb;
+        border: 1px solid var(--login-error-border);
+        transition: all 0.3s ease;
       }
 
       .default-credentials {
-        background: #d1ecf1;
-        color: #0c5460;
+        background: var(--login-info-bg);
+        color: var(--login-info-text);
         padding: 15px;
         border-radius: 6px;
         margin-top: 20px;
         font-size: 14px;
         text-align: center;
-        border: 1px solid #bee5eb;
+        border: 1px solid var(--login-info-border);
+        transition: all 0.3s ease;
       }
 
       .default-credentials strong {
@@ -231,6 +274,9 @@
 
       // Check if already logged in
       window.addEventListener("load", async () => {
+        // Inicializar modo oscuro
+        initLoginDarkMode();
+
         try {
           const response = await fetch("api/auth.php", {
             method: "POST",
@@ -252,6 +298,18 @@
           console.error("Session check error:", error);
         }
       });
+
+      // Función para inicializar modo oscuro en login
+      function initLoginDarkMode() {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      }
     </script>
   </body>
 </html>

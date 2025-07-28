@@ -5,6 +5,7 @@ class WarehouseApp {
     this.editingPlane = null;
     this.editingTicket = null;
     this.editingPilot = null;
+    this.darkMode = false;
     this.init();
   }
 
@@ -59,6 +60,68 @@ class WarehouseApp {
     }
   }
 
+  // Funciones para manejar el modo oscuro
+  initDarkMode() {
+    // Cargar preferencia guardada
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      this.enableDarkMode();
+    } else {
+      this.disableDarkMode();
+    }
+
+    // Escuchar cambios en las preferencias del sistema
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        if (!localStorage.getItem("theme")) {
+          if (e.matches) {
+            this.enableDarkMode();
+          } else {
+            this.disableDarkMode();
+          }
+        }
+      });
+  }
+
+  enableDarkMode() {
+    document.documentElement.setAttribute("data-theme", "dark");
+    this.darkMode = true;
+    localStorage.setItem("theme", "dark");
+    this.updateDarkModeButton();
+    console.log("🌙 Modo oscuro activado");
+  }
+
+  disableDarkMode() {
+    document.documentElement.removeAttribute("data-theme");
+    this.darkMode = false;
+    localStorage.setItem("theme", "light");
+    this.updateDarkModeButton();
+    console.log("☀️ Modo claro activado");
+  }
+
+  toggleDarkMode() {
+    if (this.darkMode) {
+      this.disableDarkMode();
+    } else {
+      this.enableDarkMode();
+    }
+  }
+
+  updateDarkModeButton() {
+    const button = document.getElementById("darkModeToggle");
+    if (button) {
+      button.innerHTML = this.darkMode ? "☀️" : "🌙";
+      button.title = this.darkMode
+        ? "Cambiar a modo claro"
+        : "Cambiar a modo oscuro";
+    }
+  }
+
   async init() {
     // Check authentication first
     const isAuthenticated = await this.checkAuthentication();
@@ -67,6 +130,7 @@ class WarehouseApp {
       return;
     }
 
+    this.initDarkMode();
     this.bindEvents();
     this.loadData();
     this.initMobileOptimizations();
@@ -1565,6 +1629,11 @@ class WarehouseApp {
 // Global function for navigation
 function showSection(section) {
   app.showSection(section);
+}
+
+// Global function for dark mode toggle
+function toggleDarkMode() {
+  app.toggleDarkMode();
 }
 
 // Global logout function
