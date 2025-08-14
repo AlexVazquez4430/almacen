@@ -50,13 +50,28 @@ try {
                         break;
                     }
 
-                    // No need to get pilots and doctors anymore - simplified structure
+                    // Get pilots and doctors for this ticket
+                    foreach ($tickets as &$ticket) {
+                        // Get pilots for this ticket
+                        // Deleted
+
+                        // Get doctors for this ticket
+                        $doctorStmt = $db->prepare("
+                            SELECT d.id, d.name
+                            FROM doctors d
+                            JOIN ticket_doctors td ON d.id = td.doctor_id
+                            WHERE td.ticket_id = ?
+                        ");
+                        $doctorStmt->execute([$ticket['id']]);
+                        $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
 
                     echo json_encode([$tickets[0]]); // Return array format for consistency
                     break;
                 }
 
-                // Get filter parameters for listing all tickets
+                // Get filter parameters for listing all tickets 
+                $doctor_filter = $_GET['doctor'] ?? '';
                 $date_filter = $_GET['date'] ?? '';
                 $description_filter = $_GET['description'] ?? '';
 
@@ -74,12 +89,20 @@ try {
                         ) as total_cost
                     FROM tickets t
                     LEFT JOIN planes p ON t.plane_id = p.id
+                    LEFT JOIN ticket_doctors td ON t.id = td.ticket_id
+                    LEFT JOIN doctors d ON td.doctor_id = d.id
                     WHERE 1=1
                 ";
 
                 $params = [];
 
-                // Add filters (only date and description now)
+                // Add filters
+
+                if (!empty($doctor_filter)) {
+                    $query .= " AND d.name LIKE ?";
+                    $params[] = '%' . $doctor_filter . '%';
+                }
+
                 if (!empty($date_filter)) {
                     $query .= " AND DATE(t.ticket_date) = ?";
                     $params[] = $date_filter;
@@ -96,7 +119,20 @@ try {
                 $stmt->execute($params);
                 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // No need to get pilots and doctors anymore
+                // Get pilots and doctors for each ticket
+                // Ya no los obtenemos
+
+                    // Get doctors for this ticket
+               foreach ($tickets as &$ticket) {
+    $doctorStmt = $db->prepare("
+        SELECT d.id, d.name
+        FROM ticket_doctors td
+        JOIN doctors d ON td.doctor_id = d.id
+        WHERE td.ticket_id = ?
+    ");
+    $doctorStmt->execute([$ticket['id']]);
+    $ticket['doctors'] = $doctorStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
                 echo json_encode($tickets);
             } catch (Exception $e) {
@@ -125,7 +161,8 @@ try {
 
                 $ticketId = $db->lastInsertId();
 
-                // No pilot or doctor assignment needed anymore
+                // Add pilots to the ticket
+                // Ya no hace insert
 
                 // Add doctors to the ticket
                 if (isset($data['doctor_ids']) && is_array($data['doctor_ids'])) {
@@ -165,18 +202,33 @@ try {
                 $data['id']
             ]);
 
-            $db->commit();
-            echo json_encode(['success' => true]);
-        } catch(PDOException $e) {
-            $db->rollback();
-            echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
-        }
-        break;
+                // Remove existing pilot assignments
+                // Ya no se usa para pilotos
 
-    case 'DELETE':
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (!$data || !isset($data['id'])) {
-            echo json_encode(['error' => 'Invalid data or missing ID']);
+                // Add new pilot assignments
+                // Ya no se usa
+
+
+                // Remove existing doctor assignments
+                $stmt = $db->prepare("DELETE FROM ticket_doctors WHERE ticket_id = ?");
+                $stmt->execute([$data['id']]);
+
+                // Add new doctor assignments
+                if (isset($data['doctor_ids']) && is_array($data['doctor_ids'])) {
+                    $doctorStmt = $db->prepare("INSERT INTO ticket_doctors (ticket_id, doctor_id) VALUES (?, ?)");
+                    foreach ($data['doctor_ids'] as $doctorId) {
+                        if (!empty($doctorId)) {
+                            $doctorStmt->execute([$data['id'], $doctorId]);
+                        }
+                    }
+                }
+
+                $db->commit();
+                echo json_encode(['success' => true]);
+            } catch(PDOException $e) {
+                $db->rollback();
+                echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
+            }
             break;
             }
             

@@ -19,21 +19,29 @@ try {
 
     switch($method) {
         case 'GET':
-            if (!isset($_GET['plane_id'])) {
-                echo json_encode(['error' => 'plane_id parameter required']);
-                break;
-            }
-            
-            $planeId = $_GET['plane_id'];
             try {
-                $stmt = $db->prepare("
-                    SELECT ps.*, ppm.minimum_quantity, p.name as product_name
-                    FROM plane_stocks ps
-                    LEFT JOIN plane_product_minimums ppm ON ps.plane_id = ppm.plane_id AND ps.product_id = ppm.product_id
-                    LEFT JOIN products p ON ps.product_id = p.id
-                    WHERE ps.plane_id = ?
-                ");
-                $stmt->execute([$planeId]);
+                if (isset($_GET['plane_id'])) {
+                    // Get stock for specific plane
+                    $planeId = $_GET['plane_id'];
+                    $stmt = $db->prepare("
+                        SELECT ps.*, ppm.minimum_quantity, p.name as product_name
+                        FROM plane_stocks ps
+                        LEFT JOIN plane_product_minimums ppm ON ps.plane_id = ppm.plane_id AND ps.product_id = ppm.product_id
+                        LEFT JOIN products p ON ps.product_id = p.id
+                        WHERE ps.plane_id = ?
+                    ");
+                    $stmt->execute([$planeId]);
+                } else {
+                    // Get all stock data
+                    $stmt = $db->prepare("
+                        SELECT ps.*, ppm.minimum_quantity, p.name as product_name
+                        FROM plane_stocks ps
+                        LEFT JOIN plane_product_minimums ppm ON ps.plane_id = ppm.plane_id AND ps.product_id = ppm.product_id
+                        LEFT JOIN products p ON ps.product_id = p.id
+                        ORDER BY ps.plane_id, ps.product_id
+                    ");
+                    $stmt->execute();
+                }
                 $stock = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode($stock);
             } catch(PDOException $e) {

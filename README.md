@@ -1,15 +1,18 @@
 # Warehouse Management System - CRUD Implementation
 
 ## Overview
+
 This warehouse management system now includes complete CRUD (Create, Read, Update, Delete) operations for:
+
 - **Products** (with variable pricing)
-- **Planes** 
+- **Planes**
 - **Tickets** (with pilot assignment)
 - **Pilots** (simplified - name only)
 
 ## New Features Implemented
 
 ### 1. Authentication System (NEW)
+
 - ✅ **Login System**: Secure login with username and password
 - ✅ **Session Management**: Persistent login sessions
 - ✅ **Default Admin User**: Pre-configured administrator account (admin/admin)
@@ -19,6 +22,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Password Security**: Passwords stored securely using bcrypt hashing
 
 ### 2. Products CRUD with Pricing
+
 - ✅ **Create**: Add new products with name, description, price, and initial stock
 - ✅ **Read**: View all products in a table format
 - ✅ **Update**: Edit product details and update stock levels
@@ -26,6 +30,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Price Field**: Added variable pricing for each product
 
 ### 2. Planes CRUD
+
 - ✅ **Create**: Add new planes with name and description
 - ✅ **Read**: View all planes in a table format
 - ✅ **Update**: Edit plane details
@@ -33,6 +38,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Stock Management**: Existing functionality preserved
 
 ### 3. Tickets CRUD with Pilot Assignment and Date Management
+
 - ✅ **Create**: Create new tickets with plane and pilot assignment
 - ✅ **Read**: View all tickets with plane and pilot information
 - ✅ **Update**: Edit ticket details including reassigning planes/pilots
@@ -42,6 +48,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Date Editing**: Modify ticket date when editing existing tickets
 
 ### 4. Mobile-First Responsive Design (NEW)
+
 - ✅ **Smartphone Optimized**: Designed primarily for mobile use
 - ✅ **Touch-Friendly**: 44px+ touch targets for easy tapping
 - ✅ **Responsive Layout**: Adapts to all screen sizes (320px to 1200px+)
@@ -56,6 +63,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Dark Mode**: Automatic dark mode support based on system preference
 
 ### 7. Pricing and Cost Management (NEW)
+
 - ✅ **Product Pricing**: Each product has a configurable price
 - ✅ **Ticket Item Costs**: View individual item costs (quantity × price)
 - ✅ **Total Cost Calculation**: Automatic calculation of total ticket cost
@@ -63,6 +71,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Ticket Cost Display**: Total cost shown in tickets table
 
 ### 6. Enhanced Ticket Management (NEW)
+
 - ✅ **Multiple Pilots**: Each ticket can have one or multiple pilots assigned
 - ✅ **Multiple Doctors**: Each ticket can have one or multiple doctors assigned
 - ✅ **Advanced Filtering**: Filter tickets by pilot name, doctor name, date, or description
@@ -71,6 +80,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 - ✅ **Real-time Search**: Instant filtering as you type
 
 ### 7. Doctors Management (NEW)
+
 - ✅ **Create**: Add new doctors with name
 - ✅ **Read**: View all doctors in a table format
 - ✅ **Update**: Edit doctor names
@@ -80,6 +90,7 @@ This warehouse management system now includes complete CRUD (Create, Read, Updat
 ## Database Schema Changes (SQLite)
 
 ### Users Table
+
 ```sql
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,17 +101,20 @@ CREATE TABLE users (
 ```
 
 **Default Administrator Account:**
+
 - **Username:** `administrador`
 - **Password:** `IngresoControl$Almacen?`
 - **Auto-created:** Yes (created automatically on first run)
 
 ### Authentication System
+
 - **Session-based:** Uses PHP sessions for authentication
 - **Password Hashing:** Passwords are securely hashed using PHP's `password_hash()`
 - **Protected APIs:** All API endpoints require valid session
 - **Auto-redirect:** Unauthenticated users redirected to login page
 
 ### New Tables
+
 ```sql
 CREATE TABLE pilots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,12 +146,14 @@ CREATE TABLE ticket_doctors (
 ```
 
 ### Modified Table: `products`
+
 ```sql
 -- Price column added automatically by database.php
 ALTER TABLE products ADD COLUMN price DECIMAL(10,2) DEFAULT 0.00;
 ```
 
 ### Modified Table: `tickets`
+
 ```sql
 -- Pilot ID column added automatically by database.php
 ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
@@ -148,16 +164,20 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 **Important**: This system uses **SQLite** database, not MySQL. The database file (`warehouse.db`) is automatically created and managed by the application.
 
 ### Automatic Setup
+
 - The `config/database.php` file automatically creates all required tables
 - Sample pilot data is automatically inserted on first run
 - No manual database setup required
 
 ### Default Admin User (Auto-created)
-- **Username**: administrador
-- **Password**: IngresoControl$Almacen? (change immediately after first login)
+
+- **Username**: admin
+- **Password**: admin (change immediately after first login)
 
 ### Sample Data (Auto-created)
+
 **Pilots:**
+
 - Juan Pérez
 - María García
 - Carlos López
@@ -165,6 +185,7 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - Luis Martínez
 
 **Doctors:**
+
 - Dr. Smith
 - Dr. Johnson
 - Dr. Williams
@@ -174,30 +195,35 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 ## API Endpoints
 
 ### Products API (`api/products.php`)
+
 - `GET /api/products.php` - Get all products
 - `POST /api/products.php` - Create new product
 - `PUT /api/products.php` - Update product (full update or stock only)
 - `DELETE /api/products.php` - Delete product
 
 ### Planes API (`api/planes.php`)
+
 - `GET /api/planes.php` - Get all planes
 - `POST /api/planes.php` - Create new plane
 - `PUT /api/planes.php` - Update plane
 - `DELETE /api/planes.php` - Delete plane
 
 ### Tickets API (`api/tickets.php`)
+
 - `GET /api/tickets.php` - Get all tickets with plane and pilot names
 - `POST /api/tickets.php` - Create new ticket
 - `PUT /api/tickets.php` - Update ticket
 - `DELETE /api/tickets.php` - Delete ticket
 
 ### Pilots API (`api/pilots.php`) - NEW
+
 - `GET /api/pilots.php` - Get all pilots
 - `POST /api/pilots.php` - Create new pilot (name only)
 - `PUT /api/pilots.php` - Update pilot name
 - `DELETE /api/pilots.php` - Delete pilot
 
 ### Doctors API (`api/doctors.php`) - NEW
+
 - `GET /api/doctors.php` - Get all doctors
 - `POST /api/doctors.php` - Create new doctor (name only)
 - `PUT /api/doctors.php` - Update doctor name
@@ -206,6 +232,7 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 ## User Interface Features
 
 ### Simplified Management
+
 - **Name Only**: Pilots and doctors only require a name field
 - **Simple Forms**: Clean, minimal forms for adding/editing pilots and doctors
 - **Easy Management**: Quick add, edit, and delete operations
@@ -213,12 +240,14 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - **Tag Display**: Visual tags for assigned pilots and doctors in ticket views
 
 ### Form Enhancements
+
 - Edit mode for all entities with form state management
 - Cancel buttons for edit operations
 - Form validation and error handling
 - Dynamic form titles and button text
 
 ### Table Actions
+
 - **Edit** buttons for inline editing
 - **Delete** buttons with confirmation dialogs
 - **Manage Stock** for planes (existing functionality)
@@ -226,6 +255,7 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 - **Update Stock** for products (existing functionality)
 
 ### Navigation
+
 - Added "Pilots" and "Doctors" sections to main navigation
 - Enhanced ticket creation/editing interface with multi-select
 - Responsive design improvements
@@ -235,6 +265,7 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 ## Installation & Setup
 
 ### Quick Start
+
 1. **Upload Files**: Upload all files to your web server
 2. **Access Login**: Open `login.html` in your browser (or `index.html` will redirect)
 3. **Login**: Use default credentials:
@@ -244,18 +275,21 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 5. **Start Using**: Begin adding products, planes, pilots, and tickets
 
 ### Authentication & Security
+
 - **Secure Login**: All access requires authentication
 - **Session Management**: Login sessions persist until logout
 - **Protected APIs**: All data operations require valid login
 - **Default Admin**: Administrator account created automatically
 
 ### No Database Configuration Required
+
 - SQLite database is automatically created
 - All tables are automatically set up
 - Sample data is automatically inserted
 - No manual SQL commands needed
 
 ## File Structure
+
 ```
 ├── api/
 │   ├── pilots.php (NEW - Simplified)
@@ -298,6 +332,7 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 9. **Cost Management**: View individual item costs and total ticket costs
 
 ### Ticket Management Features:
+
 - **Multiple Assignments**: Assign multiple pilots and doctors to each ticket
 - **Real-time Filtering**: Type to instantly filter tickets by any criteria
 - **Visual Display**: Pilots and doctors shown as colored tags for easy identification
@@ -306,13 +341,22 @@ ALTER TABLE tickets ADD COLUMN pilot_id INTEGER;
 ## Troubleshooting
 
 ### Pilots Not Working?
+
 - Ensure the web server has write permissions for the directory (SQLite needs to create the database file)
 - Check browser console for JavaScript errors
 - Verify that the `config/database.php` file is accessible
 
 ### Database Issues?
+
 - The SQLite database file (`warehouse.db`) is created automatically
 - If issues persist, delete the `warehouse.db` file and refresh the page to recreate it
 - Ensure proper file permissions on the web server
 
 The system maintains all existing functionality while adding comprehensive CRUD operations and the simplified pilot management feature you requested.
+
+## Inicar el sistema para desarrollo
+
+php -S localhost:8000 -t .
+
+#Página web
+https://alamcenairlink.xyz

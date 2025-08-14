@@ -10,11 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Create pilots table (simplified - only name field)
-CREATE TABLE IF NOT EXISTS pilots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- No more pilots
 
 -- Create doctors table
 CREATE TABLE IF NOT EXISTS doctors (
@@ -24,14 +20,7 @@ CREATE TABLE IF NOT EXISTS doctors (
 );
 
 -- Create ticket_pilots junction table (many-to-many relationship)
-CREATE TABLE IF NOT EXISTS ticket_pilots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ticket_id INTEGER NOT NULL,
-    pilot_id INTEGER NOT NULL,
-    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
-    FOREIGN KEY (pilot_id) REFERENCES pilots(id),
-    UNIQUE(ticket_id, pilot_id)
-);
+-- Ya no usamos esta tabla no existe
 
 -- Create ticket_doctors junction table (many-to-many relationship)
 CREATE TABLE IF NOT EXISTS ticket_doctors (
